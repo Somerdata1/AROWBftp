@@ -23,8 +23,8 @@ class Forward:
         try:
             self.forward.connect((host, port))
             return self.forward
-        except Exception, e:
-            print e
+        except Exception as e:
+            print (e)
             return False
 
 class TheServer:
@@ -58,18 +58,18 @@ class TheServer:
         forward = Forward().start(forward_to[0], forward_to[1])
         clientsock, clientaddr = self.server.accept()
         if forward:
-            print clientaddr, "has connected"
+            print (clientaddr, "has connected")
             self.input_list.append(clientsock)
             self.input_list.append(forward)
             self.channel[clientsock] = forward
             self.channel[forward] = clientsock
         else:
-            print "Can't establish connection with remote server.",
-            print "Closing connection with client side", clientaddr
+            print ("Can't establish connection with remote server.",)
+            print ("Closing connection with client side", clientaddr)
             clientsock.close()
 
     def on_close(self):
-        print self.s.getpeername(), "has disconnected"
+        print (self.s.getpeername(), "has disconnected")
         #remove objects from input_list
         self.input_list.remove(self.s)
         self.input_list.remove(self.channel[self.s])
@@ -85,7 +85,7 @@ class TheServer:
     def on_recv(self):
         data = self.data
         # here we can parse and/or modify the data before send forward
-        print data
+        print (data)
         self.channel[self.s].send(data)
 
 if __name__ == '__main__':
@@ -93,5 +93,5 @@ if __name__ == '__main__':
         try:
             server.main_loop()
         except KeyboardInterrupt:
-            print "Ctrl C - Stopping server"
+            print ( "Ctrl C - Stopping server")
             sys.exit(1)

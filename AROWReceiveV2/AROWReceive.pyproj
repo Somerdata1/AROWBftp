@@ -11,7 +11,7 @@
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterId>MSBuild|py36_env1|$(MSBuildProjectFullPath)</InterpreterId>
+    <InterpreterId>MSBuild|Win_py36_env|$(MSBuildProjectFullPath)</InterpreterId>
     <CommandLineArguments>-r TestReceive -a localhost -p 9875 -c</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
@@ -50,10 +50,10 @@
     <Folder Include="web" />
   </ItemGroup>
   <ItemGroup>
-    <Interpreter Include="..\..\..\..\..\py36_env\">
-      <Id>py36_env1</Id>
+    <Interpreter Include="..\..\..\..\..\Win_py36_env\">
+      <Id>Win_py36_env</Id>
       <Version>3.6</Version>
-      <Description>py36_env (Python36_86)</Description>
+      <Description>Win_py36_env (Python36_86)</Description>
       <InterpreterPath>Scripts\python.exe</InterpreterPath>
       <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>

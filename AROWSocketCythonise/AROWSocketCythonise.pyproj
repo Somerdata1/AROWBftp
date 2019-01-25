@@ -11,7 +11,7 @@
     <OutputPath>.</OutputPath>
     <Name>AROWSocketCythonise</Name>
     <RootNamespace>AROWSocketCythonise</RootNamespace>
-    <InterpreterId>MSBuild|py36_env|$(MSBuildProjectFullPath)</InterpreterId>
+    <InterpreterId>MSBuild|Win_py36_env|$(MSBuildProjectFullPath)</InterpreterId>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <CommandLineArguments>setup.py build_ext --inplace</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
@@ -29,10 +29,10 @@
     <Compile Include="AROWSocketCythonise.py" />
   </ItemGroup>
   <ItemGroup>
-    <Interpreter Include="..\..\py36_env\">
-      <Id>py36_env</Id>
+    <Interpreter Include="..\..\..\Win_py36_env\">
+      <Id>Win_py36_env</Id>
       <Version>3.6</Version>
-      <Description>py36_env (Python36_86)</Description>
+      <Description>Win_py36_env (Python36_86)</Description>
       <InterpreterPath>Scripts\python.exe</InterpreterPath>
       <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
