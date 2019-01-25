@@ -1,0 +1,12 @@
+altgraph==0.16.1
+coverage==4.5.2
+Cython==0.29.2
+future==0.17.1
+macholib==1.11
+pefile==2018.8.8
+pip==18.1
+pycodestyle==2.4.0
+PyInstaller==3.4
+pywin32==224
+pywin32-ctypes==0.2.0
+setuptools==40.6.3
