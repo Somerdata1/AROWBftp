@@ -1,0 +1,78 @@
+AROWSend programming notes - Jan 2019
+AROWBftp programs from V2 onwards require Python 3.6.
+To help in setting up a virtual environment (recommended) for Python, a requirements.txt file is provided for each Project. This should enable the importation through pip of all the non-core dependencies. 
+
+Program Aims
+The aim of the AROWBftp python scripts is to replicate a file tree across a unidirectional diode router. 
+In addition, the scripts support asynchronous transmission of UDP and TCP data streams ( one of each) via built-in server/clients.
+Data diodes prevent the transmission of acknowledgement information, potentially leading to errors in received data.
+For file-based data this could be catastrophic, since the file-tree integrity must be absolute.
+Operation
+The AROWSend scripts contain a number of functions aimed at 
+a) preventing data loss in the first place
+b) tagging data to allow receiver checking
+c) logging and alerting when data has been lost. 
+In a TCP-based system, the only source of error is during transmission by unplanned interruption.
+There are three main scenarios for this
+1) the receive scripts are started while the send scripts are already running,
+2) the send scripts are interrupted during transmission, by user or system aborting
+3) the transmission medium is errored, due to insufficient processing time causing buffers to overrun. 
+The sender cannot know directly whether the receiver is running or whether data has been received successfully.
+Mechanisms are required to deal with each of these and some of the subtler side-effects that can result.
+The data handling strategy employed is multi-layered. 
+At the outside layer sits the application protocol and signalling.
+In order to maintain file tree integrity across the diode, the sending tree is regularly scanned for changes - see the AROWSend notes for details
+Each scan is called a Session and given a unique session number (in fact a timecode derivative) 
+AROWSend creates special information packets, signifying the end of each session, with information about how many files have been transmitted.
+Additionally, there are special information packets signalling the start and close of the application. These can be used for management purposes, as well as informing the logs. 
+Also part of this layer is the Redundancy option. A dictionary of each file to be sent is used to track the number of times it has been sent (plus information such as time code, size and crc). When set to a number >1, each file will be sent multiple times, up to a maximum of the Redundancy count on successive sessions. This gives a better chance that files will be received satisfactorily but reduces the aggregate effective bandwidth of the system by a factor of R. ( If R=2, bandwidth will be halved, etc.)    
+The next layer is to break the stream into frames. Files typically occupy multiple frames, each frame has a header section and data section.
+The header section is a fixed size across all frame types, the data section is variable length. 
+The header contains information about the size of the data section, a timecode, the type of frame, a crc check code, the session number, the number of frames that make up the complete file, the frame number, the original file size and timestamp and the ( fully-qualified)file name.
+NB Not all frame-types contain this information, but all have equivalents or NULL, maintaining the header size. Most importantly, every header contains a frame marker sequence that is used to align the frame for correct decoding. A three-byte marker was chosen to minimise being found in 
+ordinary data, but it is by no means unique, so depends on the frame-length indicator to determine where the next marker should be, effectively creating a windowed marker. 
+The final layer is using the header information to identify correct/incorrect frames and deal with the outcome appropriately.     
+In order to enjoy maximum trust in the system, it is necessary to know when things have gone wrong and to have a mechanism to correct them.
+
+AROWSend makes use of a logging mechanism to gather both management and exception information to inform operators of the system state and allow actions to be taken.
+In the case of errored file reception, a manifest file can be transmitted ( recovery option -c) that contains details of the files sent. This can be used to on the received side to check that data has been correctly received and to request re-transmission of non-received files. This difference file(s) can be  used to automatically scan for files that have not been received and reset their dictionary attributes so that they are quued for transmission again.
+The manifest file is in XML format so can easily be edited if required to manually effect this re-transmssion.
+The standard Python logging mechanism is very versatile and can easily be expanded to create syslogs, smtp alerts, http alerts and so on.
+Fo those who like to keep a permanent eye on things, we have provided a http interface into the scripts that displays statistics about the transfer and setup configuration.
+
+A Note on the use of Python
+Wherever possible we have tried to use standard Python library modules, albeit from version 3.6. Where this has not been possible the source-code for custom modules is included. However there is no doubt that for byte-level manipulation such as stream synchronisation the speed benefits of C are worthwhile, so we have used a small part of Cython to produce fast pre-compiled code for the socket reception and synchronisation functions. The standard python versions of these are also included for those who can't or don't want to use Cython.
+AROWSend.py
+AROWSend.py is the main script. This is a command line application that loops forever until it receives a keyboard interrupt. 
+The main part of the script interrogates for command-line options ( see the docs for these) and sets up the configuration appropriately.
+A number of threaded operations are also set up and started. First a sending object  thread is started . This accepts any serialised object (file, tcp, udp packet , heartbeat packet etc.) defined in the global section. A socket is established and maintained for the life of the program.
+Each object is framed, by adding a header containing a marker, frame length, timing information etc before being queued for transmission. A priority queue is used to allow low-latency streaming to be sent before files and management information.
+The file data to be transmitted is selected from a base sending folder. Regular loops of the program are performed, with a user definable interval (-P option). Each loop causes a scan of the base folder to be performed and a comparision made with previous scans to determine if any part of the tree has changed. Actions are then taken appropriately - changed files are re-transmitted, new files are transmitted for the first time, delted files casue a special delete request to be sent to the receive side so that the file can be deleted. There are two options on this -files deletion requests can be sent immediatley or deferred for one week. (options -S and -s).
+V1.3.0 introduced directory level control. Since each scan produces an ( internal ) directory tree listing, large numbers of files and folders can produce very large memory requirements (multi GB of RAM) . The solution to this is to divide the trees into more mangemable chunks. So the base path is scanned and the folder/directory structure determiend down to a user-settable level ( option -j). Each of these identified levels is then treated as if it were the base layer, and a XML file describing its tree structure is written (in temporary storage in the normal case, in a special manifest files in the case that the recovery option is in operation). This scheme requires the user
+to know their data, and choose a suitable level, so the resource usage can be managed. This scheme is effective in allowing very large data sets to be transmitted, but at the cost of reduced bandwidth, since each tree has to be scanned individually and the description file written to disk. The recovery option means that many more recovery files are created, increasing the management load on the received side.
+The main scan loop is therefore the source of most of the issues and great care should be taken when changing it - check all test scenarios to make sure everything still works.
+ 
+Packet types are determined by a code in the header.
+INFO_PACKETs contain message information that can be used by the sender to pass system admin messages to the receiver.
+FILE_PACKETs contain file frames, together with their management information
+HEARTBEAT_PACKETs are a special packet type used for re-assurance that the link is still up. These are sent on a regular timed interval.
+SCANEND_PACKETs indicate that a session on the send side has completed. It contains the number of files sent in the session
+DELETEFile_PACKETs indicate files that have been deleted on the Send side and therefore should be deleted on the receive side. But see later
+TCP_STREAM_PACKETs are used to carry raw tcp data. These are accepted from the TCPStream socket, and passed on as 'lumps' of data, tagged with the TCP pacekt id.
+UDP_STREAM_PACKETs are used to carry UDP datagrams. These are accepted from the UDPStream socket and passed as native datgrams, tagged with the UDP packet id.
+
+File handling
+The comparison of xml trees is at the heart of the file control system.Two trees are compared, one is from the current disk storage, as identified form the levelling scan, the other is either from the recovery file, or the temporary file, or from the stored internal tree . On first scan unless there is a recovery file(s), there is nothing to compare so all files in the chosen directories are sent. Subsequent scans carry out the comparison as above. Note that the recovery xml file,if used, can be amended at any time and its changes will be enacted at the next scan loop.   
+
+Packet handling
+Data identified as files and needing transmssion, is read from disk and chopped up into frames, with a frame header that includes a crc checksum, timestamp, session number, frame length and frame sequence number and number of frames that make up the file.  V1.3.0 onwards carries out the crc generation on the fly to reduce initial file transmission latency.  
+Frames are each tagged with a priority and time-based priority sub key to ensure they are transmitted sequentially, but any file frame can be delayed if a higher priority frame comes along. Priorities are set globally as follows 1. Stream Packets, 2. File Packets, 3. Deletion packets, 4. Management and Heartbeat packets
+
+Statistical observations - statsserver.py
+Statistical information for presentation to the http interface is gathered from various parts of the scripts. Since there is long-term monitoirng required different statistical queues are populated for seconds, minutes and hours and stats are re-validated every 5 seconds. The xslt and rgraph javascript modules are used to render this information in response to http requests from a browser. Note that the browser port defaults to 8080 but this is a startup option that can be changed. 
+
+Performance - file sending
+The biggest determinant of performance for file sending is the disk/storage access speed and the reading/writing of temporary storage files. But these must be aligned with the capability of the receiving system. If this is too slow, data will be lost due to buffer overruns. Some measuring of the receiveing system should be carried out to determine this, perhaps by test transmissions.
+The sending side can be throttled, using the flowrate control (option -l) and should be set to cope with the worst-case receiving speed. Typically on a small disk system, this will not exceed 600Mbps sustained but could be much less so the flowrate should be set appropriately.   
+ 
+=  
