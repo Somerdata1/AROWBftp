@@ -22,6 +22,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="AROWRecv.ini" />
+    <Content Include="requirements.txt" />
     <Content Include="web\excanvas.js" />
     <Content Include="web\jquery.js" />
     <Content Include="web\RGraph.bar.js" />
