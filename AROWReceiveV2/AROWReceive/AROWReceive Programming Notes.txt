@@ -1,0 +1,117 @@
+AROWReceive programming notes - May 2015
+The aim of the AROWBftp python scripts is to replicate a file tree across a unidirectional diode router. 
+In addition, the scripts support asynchronous transmission of UDP and TCP data streams ( one of each) via built-in server/clients.
+Data diodes prevent the transmission of acknowledgement information, potentially leading to errors in received data.
+For file-based data this could be catastrophic, since the file-tree integrity must be absolute.
+The AROWReceive scripts contain a number of functions aimed at 
+a) preventing data loss in the first place
+b) identifying errored data
+c) logging and alerting when data has been lost. 
+In a TCP-based system, the only source of error is during transmission by unplanned interruption.
+There are three main scenarios for this
+1) the receive scripts are started while the send scripts are already running,
+2) the send scripts are interrupted during transmission, by user or system aborting
+3) the transmission medium is errored, due to insufficient processing time causing buffers to overrun.  
+Mechanisms are required to deal with each of these and some of the subtler side-effects that can result.
+The data handling strategy employed is multi-layered. 
+At the outside layer sits the application protocol and signalling.
+In order to maintain file tree integrity across the diode, the sending tree is regularly scanned for changes - see the AROWSend notes for details
+Each scan is called a session and given a unique session number ( in fact a timecode derivative) 
+AROWSend creates special information packets, signifying the end of each session, with information about how many files have been transmitted.
+Additionally, there are special information packets signalling the start and close of the application. These can be used for management 
+purposes, as well as informing the logs. 
+Also part of this layer is the Redundancy option. A dictionary of each file to be sent is used to track the number of times it has been sent
+( plus information such as time code, size and crc). When set to a number >1 , each file will be sent multiple times, up to a maximum
+of the Redundancy count on successive sessions. This gives a better chance that files will be received satisfactorily but reduces the 
+aggregate effective bandwidth of the system by a factor of R. ( If R=2, bandwidth will be halved, etc.)    
+The next layer is to break the stream into frames. Files typically occupy multiple frames, each frame has a header section and data section.
+The header section is a fixed size across all frame types, the data section is variable length. 
+The header contains information about the size of the data section, a timecode, the type of frame, a crc check code, the session number,
+the number of frames that make up the complete file, the frame number, the original file size and timestamp and the ( fully-qualified)file name.
+NB Not all frame-types contain this information, but all have equivalents or NULL, maintaining the header size. Most importantly, every header 
+contains a frame marker sequence that is used to align the frame for correct decoding. A three-byte marker was chosen to minimise being found in 
+ordinary data, but it is by no means unique, so depends on the frame-length indicator to determine where the next marker should be,
+effectively creating a windowed marker. 
+The final layer is using the header information to identify correct/incorrect frames and deal with the outcome appropriately.     
+In order to enjoy maximum trust in the system, it is necessary to know when things have gone wrong and to have a mechanism to correct
+them.
+AROWReceive makes use of a logging mechanism to gather both management and exception information to inform operators of the system state
+and allow actions to be taken. In the case of errored file reception, these are logged and a manifest file can be created that contians
+details of the files received. this can be used to request re-transmission of non-received files, but also can be sent to the sending
+side and used to automatically scan for files that have not been received and rest their dictionary attributes so that they are quued
+for transmission again. The manifest file is in XML format so can easily be edited if required to manually effect this re-transmssion.
+The standard Python logging mechanism is very versatile and can easily be expanded to create syslogs, smtp alerts, http alerts and so on.
+Fo those who like to keep a permanent eye on things, we have provided a http interface into the scripts that displays statistics about
+the transfer and setup configuration.
+A Note on the use of Python
+Wherever possible we have tried to use standard Python library modules, albeit from version 2.7.9. where this has not been possible
+the source-code for custom modules is included. However there is no doubt that for byte-level manipulation such as stream synchronisation
+the speed benefits of C are worthwhile, so we have used a small part of Cython to produce fast pre-compiled code for the socket reception
+and synchronisation functions. The standard python versions of these are also included for those who can't or don't want to use Cython.
+AROWReceive.py
+AROWReceive.py is the main script. This is a command line application that loops forever until it receives a keyboard interrupt. 
+The main part of the script interrogates for command-line options ( see the docs for these) and setups up the configuration appropriately.
+A number of threaded operations are also set up and started. First a socket thread is started (in BFTPSocket.pyx) . This tries to establish connection with a 
+suitable TCP socket and manages data stream transfers. The socket manager  identifies and splits the incoming stream into header and data sections,
+as a tuple. The Python deque is used to create a fifo for these received tuples. A separate perpetual decode thread is created to decode these tuples.
+Signalling events are used to identify when data is available for decoding. 
+The socket manager is responsible for maintaining data stream synchronism and catching it when sync is lost. Only 'good'  data is ever placed
+on the fifo queue, being of the correct frame length as signalled in the header. On loss of sync, the manager tries to re-establish 
+sync within a bounded count, if this fails it resets the queue abandoning all existing data, finally if all else fails it resets the tcp socket 
+connection. Note too that if the peer resets the socket, the socket manager will try to re-connect forever on a timed re-try.
+BFTPDecode.py
+BFTPDecode.py contains the main decode and file management code. Each tuple is removed from the queue, the header decoded and the 'packet' of data routed 
+to the appropriate function. Checks are carried out at each stage to maintain the packet accuracy ( valid frame length, file name, packet type etc)
+Packet types are determined by a code in the header.
+INFO_PACKETs contain message information that can be used by the sender to pass system admin messages to the receiver.
+FILE_PACKETs contain file frames, together with their management information
+HEARTBEAT_PACKETs are a special packet type used for re-assurance that the link is still up. These are sent on a regular timed interval.
+SCANEND_PACKETs indicate that a session on the send side has completed. It contains the number of files sent in the session
+DELETEFile_PACKETs indicate files that have been deleted on the Send side and therefore should be deleted on the receive side. But see later
+TCP_STREAM_PACKETs are used to carry raw tcp data. There is no decoding of these, simply presentation at the TCPStream socket
+UDP_STREAM_PACKETs are used to carry UDP datagrams. These are presented at the UDPStream socket.
+File handling
+When a FILE_PACKET has been identified, it is processed according to the following sequence:
+1) if this is the first file frame, a check is carried out to see if the filename is already in the destination tree, if it has the same crc and 
+if it has the same file date. If these are all true, no file processing is carried out because the file exists and has not changed. 
+If any are false, a new temporary file is created and the frame is inserted into the file position described by the frame_offset designator
+. Note that in the event of out of order frames, the file should still be constructed correctly. An initial calculation of the crc is also started.
+2) if this is not the first frame AND there has been a first frame, the frame is decoded and inserted into its temporary file according to its
+frame_offset tag. The crc calculation is continued and stored awaiting the next frame, the received frame count is incremented.
+If there has NOT been a first frame, this indicates that reception is starting in the middle of a file treansfer, or that there have
+been transmission errors. In this case, the frame is discarded,any temporary file is deleted and the user is informed that the file transfer has failed,
+at the console and in the log.
+3) if this is the last frame in the file, the frame counter will be equal to the expected number of frames and the temporary file is therefore complete.
+The final frame includes the final expected crc for the whole file, so this is checked against the final crc calculated as the temporary
+file was created. The file time and size are also checked. If any of these are inconsistent, the file is rejected, the temporary file 
+deleted and the failure logged. If all indicators are correct, the temporary file is renamed if the destination file path is in the current file system
+or copied if the destination path is part of another file system. Copying is a threaded operation and to prevent conflicts if the same file has been repeated
+and is being received at the same time as the original file is being copied, a thread count is kept and no copying is carried out on subsequent
+files received of the same name until the first threaded copy is complete. Note that a list of all files received is kept, being added to
+and deleted from as files are successfully received. This enables a count to be made that compares the number of files sent in a particular
+session (from the SCAN_END packet) with the files received.  Disparities are logged
+During all these processes, additional checks and changes are carried out to ensure the correct os path is used and accented characters are dealt with.
+Any other logical functions are aimed at catching edge cases, usually caused by errored data. 
+statsserver.py
+Statistical information for presentation to the http interface is gathered from various parts of the scripts. Since there is long-term monitoirng required
+different statistical queues are populated for seconds, minutes and hours and stats are re-validated every 5 seconds. The xslt and rgraph javascript
+modules are used to render this information in response to http requests from a browser. Note that the browser port defaults to 8080 but this 
+is startup option that can be changed. 
+Performance - file reception
+The biggest determinant of performance for file reception is file writing speed. This is dependent on the receiving file system
+and for a single disk requires write speeds that exceed the desired transfer speed by at at least 20%. This is especially the case if large files
+( files larger than free RAM) are anticipated. In the case of full-rate  GBE across AROw, this equates to 900Mbps*1.2= 140 MBps
+ across the whole disk. It is important that the temporary file is housed on this fast 
+file system and the option to set the temporary file path is set in the startup options.
+ It is unlikely that the default system temp file location (usually on the OS drive) will be fast enough to cope with full speed transfer.  
+ If this cannot be achieved, use the throttling options on AROWSend to restrict the flow rate to the speed of your receiving file system.
+ Buffer overrun is the most frequent cause of file errors. This overrun can be in the AROW-S device or in the bounded deque. Note the deque can be re-sized
+ according to available RAM but this is not a substitute for providing the required speed - it merely delays the problem.      
+ Using BFTPSocket.pyx
+ The cython file BFTP.pyx requires compiling to be used. This needs a number of pre-requisites ; a c-compiler for the target system 
+ (gcc on Linux, Visual c++ on windows), cython 0.22, pip if not installed. Windows can be particularly tricky, VSE2008 is needed for 
+ Python 2.7.9, other python versions require their appropriate compiler. In order to cope with this, AROWReceive.py will import from 
+ BFTPSocket.py on Windows platforms by default. If you want to use Cython, these import definitions will need to be changed.
+ To create the compiled library, navigate into the AROWSocket folder and run  'setup.py build_ext --inplace' . This creates the library
+  files for your version of Linux. 
+=  
