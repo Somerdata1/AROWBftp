@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.168
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "AROWReceive", "AROWReceiveV2\AROWReceive.pyproj", "{44BB4278-78F4-45F4-8014-A1E04E77FBA0}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "AROWSend", "AROWSendV2\AROWSend.pyproj", "{8BDA94F9-26C8-4C97-8D7F-8E9A52E8AE3F}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "AROWEmulator", "AROWEmulator\AROWEmulator.pyproj", "{AD9D83B3-1D02-4347-A4EC-76989A987508}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "AROWSocketCythonise", "AROWSocketCythonise\AROWSocketCythonise.pyproj", "{D857E5BA-0991-4BB6-98C8-C3ABB21691DA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{44BB4278-78F4-45F4-8014-A1E04E77FBA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44BB4278-78F4-45F4-8014-A1E04E77FBA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BDA94F9-26C8-4C97-8D7F-8E9A52E8AE3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BDA94F9-26C8-4C97-8D7F-8E9A52E8AE3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD9D83B3-1D02-4347-A4EC-76989A987508}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD9D83B3-1D02-4347-A4EC-76989A987508}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D857E5BA-0991-4BB6-98C8-C3ABB21691DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D857E5BA-0991-4BB6-98C8-C3ABB21691DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {770F44BD-F686-48AD-B483-BD3BE94CCFF2}
+	EndGlobalSection
+EndGlobal

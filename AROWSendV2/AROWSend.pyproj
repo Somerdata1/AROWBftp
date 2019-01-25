@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{8bda94f9-26c8-4c97-8d7f-8e9a52e8ae3f}</ProjectGuid>
+    <ProjectHome>AROWSend\src\</ProjectHome>
+    <StartupFile>AROWSend.py</StartupFile>
+    <SearchPath>web\</SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId>MSBuild|py36_env|$(MSBuildProjectFullPath)</InterpreterId>
+    <CommandLineArguments>-S TestSend -a localhost -p 9876 -P 60 -C</CommandLineArguments>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="AROWSend.ini" />
+    <Content Include="web\excanvas.js" />
+    <Content Include="web\jquery.js" />
+    <Content Include="web\RGraph.bar.js" />
+    <Content Include="web\RGraph.common.core.js" />
+    <Content Include="web\RGraph.drawing.xaxis.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AROWSend.py" />
+    <Compile Include="CRC32.py" />
+    <Compile Include="DispProgress.py" />
+    <Compile Include="OptionParser_doc.py" />
+    <Compile Include="path.py" />
+    <Compile Include="plx.py" />
+    <Compile Include="sendstatsserver.py" />
+    <Compile Include="TabBits.py" />
+    <Compile Include="walkdir.py" />
+    <Compile Include="xfl.py" />
+    <Compile Include="xfl_reset.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="web" />
+  </ItemGroup>
+  <ItemGroup>
+    <Interpreter Include="..\..\..\..\..\py36_env\">
+      <Id>py36_env</Id>
+      <Version>3.6</Version>
+      <Description>py36_env (Python36_86)</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X86</Architecture>
+    </Interpreter>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+</Project>
