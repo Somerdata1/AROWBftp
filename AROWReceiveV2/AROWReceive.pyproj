@@ -40,7 +40,6 @@
     <Compile Include="OptionParser_doc.py" />
     <Compile Include="path.py" />
     <Compile Include="plx.py" />
-    <Compile Include="Proxy.py" />
     <Compile Include="statsserver.py" />
     <Compile Include="TabBits.py" />
     <Compile Include="walkdir.py" />
