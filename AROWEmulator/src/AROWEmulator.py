@@ -765,7 +765,7 @@ if __name__ == '__main__':
     HiCtrl_Recv=Th_TCPServer(Address= HICTRLHOST,TCPport=CTRLPORT+1,name='HiCtrl')# create threading instance
     TCP_Lo=Th_TCPServer(Address= LOHOST,TCPport=LOPORT,name='Lo')# create threading instance
     TCP_Hi=Th_TCPServer(Address= HIHOST,TCPport=HIPORT,name='Hi')# create threading instance
-    UDPStrPort=8001
+    UDPStrPort=8100
     
     UDP_Run= threading.Event()
     UDP_Send=Th_UDPStreamPktSend(UDPAddr=LOHOST,UDPport=UDPStrPort,name= 'Lo')# create threading instance
