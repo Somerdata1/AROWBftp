@@ -1088,16 +1088,6 @@ static CYTHON_INLINE int __Pyx_PyObject_SetSlice(
 /* BytesEquals.proto */
 static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals);
 
-/* UnicodeEquals.proto */
-static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals);
-
-/* StrEquals.proto */
-#if PY_MAJOR_VERSION >= 3
-#define __Pyx_PyString_Equals __Pyx_PyUnicode_Equals
-#else
-#define __Pyx_PyString_Equals __Pyx_PyBytes_Equals
-#endif
-
 /* PyErrFetchRestore.proto */
 #if CYTHON_FAST_THREAD_STATE
 #define __Pyx_PyErr_Clear() __Pyx_ErrRestore(NULL, NULL, NULL)
@@ -1135,28 +1125,6 @@ static CYTHON_INLINE int __Pyx_PyErr_GivenExceptionMatches2(PyObject *err, PyObj
 #define __Pyx_PyErr_GivenExceptionMatches2(err, type1, type2) (PyErr_GivenExceptionMatches(err, type1) || PyErr_GivenExceptionMatches(err, type2))
 #endif
 #define __Pyx_PyException_Check(obj) __Pyx_TypeCheck(obj, PyExc_Exception)
-
-/* GetItemInt.proto */
-#define __Pyx_GetItemInt(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_Fast(o, (Py_ssize_t)i, is_list, wraparound, boundscheck) :\
-    (is_list ? (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL) :\
-               __Pyx_GetItemInt_Generic(o, to_py_func(i))))
-#define __Pyx_GetItemInt_List(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_List_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
-    (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL))
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
-                                                              int wraparound, int boundscheck);
-#define __Pyx_GetItemInt_Tuple(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_Tuple_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
-    (PyErr_SetString(PyExc_IndexError, "tuple index out of range"), (PyObject*)NULL))
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
-                                                              int wraparound, int boundscheck);
-static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j);
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
-                                                     int is_list, int wraparound, int boundscheck);
 
 /* RaiseException.proto */
 static void __Pyx_Raise(PyObject *type, PyObject *value, PyObject *tb, PyObject *cause);
@@ -1361,7 +1329,6 @@ static const char __pyx_k_clear[] = "clear";
 static const char __pyx_k_close[] = "close";
 static const char __pyx_k_errno[] = "errno";
 static const char __pyx_k_error[] = "error";
-static const char __pyx_k_globs[] = "globs";
 static const char __pyx_k_print[] = "print";
 static const char __pyx_k_sleep[] = "sleep";
 static const char __pyx_k_start[] = "start";
@@ -1390,7 +1357,6 @@ static const char __pyx_k_Receive[] = "Receive";
 static const char __pyx_k_RxQueue[] = "RxQueue";
 static const char __pyx_k_SOL_TCP[] = "SOL_TCP";
 static const char __pyx_k_connect[] = "connect";
-static const char __pyx_k_errcode[] = "errcode";
 static const char __pyx_k_logging[] = "logging";
 static const char __pyx_k_options[] = "options";
 static const char __pyx_k_partial[] = "partial";
@@ -1398,6 +1364,7 @@ static const char __pyx_k_prepare[] = "__prepare__";
 static const char __pyx_k_receive[] = "receive";
 static const char __pyx_k_statlen[] = "statlen";
 static const char __pyx_k_timeout[] = "timeout";
+static const char __pyx_k_calcsize[] = "calcsize";
 static const char __pyx_k_critical[] = "critical";
 static const char __pyx_k_qualname[] = "__qualname__";
 static const char __pyx_k_strttime[] = "strttime";
@@ -1413,7 +1380,6 @@ static const char __pyx_k_threading[] = "threading";
 static const char __pyx_k_traceback[] = "traceback";
 static const char __pyx_k_AROWLogger[] = "AROWLogger";
 static const char __pyx_k_BFTPSocket[] = "BFTPSocket";
-static const char __pyx_k_ECONNRESET[] = "ECONNRESET";
 static const char __pyx_k_RX_BUF_LEN[] = "RX_BUF_LEN";
 static const char __pyx_k_ReceiveTCP[] = "ReceiveTCP";
 static const char __pyx_k_SOL_SOCKET[] = "SOL_SOCKET";
@@ -1428,11 +1394,14 @@ static const char __pyx_k_TCP_NODELAY[] = "TCP_NODELAY";
 static const char __pyx_k_decodeEvent[] = "decodeEvent";
 static const char __pyx_k_socket_lost[] = "socket lost";
 static const char __pyx_k_SO_REUSEADDR[] = "SO_REUSEADDR";
-static const char __pyx_k_getRxConnect[] = "getRxConnect";
+static const char __pyx_k_TimeoutError[] = "TimeoutError";
+static const char __pyx_k_HEADER_FORMAT[] = "HEADER_FORMAT";
 static const char __pyx_k_MAX_QUEUE_LEN[] = "MAX_QUEUE_LEN";
 static const char __pyx_k_isRxConnected[] = "isRxConnected";
 static const char __pyx_k_BFTPSocket_pyx[] = "BFTPSocket.pyx";
-static const char __pyx_k_Th_receive_TCP[] = "Th_receive_TCP";
+static const char __pyx_k_get_rx_connect[] = "get_rx_connect";
+static const char __pyx_k_th_receive_tcp[] = "th_receive_tcp";
+static const char __pyx_k_BBBBIIIQIIIIQIHH[] = "BBBBIIIQIIIIQIHH";
 static const char __pyx_k_BFTPSocket_close[] = "BFTPSocket.close";
 static const char __pyx_k_reconnectTimeout[] = "reconnectTimeout";
 static const char __pyx_k_BFTPSocket___init[] = "BFTPSocket.__init__";
@@ -1441,8 +1410,9 @@ static const char __pyx_k_BFTPSocket_connect[] = "BFTPSocket.connect";
 static const char __pyx_k_BFTPSocket_receive[] = "BFTPSocket.receive";
 static const char __pyx_k_Receiver_connected[] = "Receiver connected ";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
-static const char __pyx_k_BFTPSocket_getRxConnect[] = "BFTPSocket.getRxConnect";
-static const char __pyx_k_BFTPSocket_Th_receive_TCP[] = "BFTPSocket.Th_receive_TCP";
+static const char __pyx_k_ConnectionResetError[] = "ConnectionResetError";
+static const char __pyx_k_BFTPSocket_get_rx_connect[] = "BFTPSocket.get_rx_connect";
+static const char __pyx_k_BFTPSocket_th_receive_tcp[] = "BFTPSocket.th_receive_tcp";
 static const char __pyx_k_Queue_Overrun_d_data_lost[] = "Queue Overrun %d, data lost";
 static const char __pyx_k_Error_in_packet_decoding_s[] = "Error in packet decoding: %s";
 static const char __pyx_k_Peer_reset_buffer_overflow[] = " Peer reset - buffer overflow?";
@@ -1452,21 +1422,24 @@ static const char __pyx_k_BFTPSocket_A_class_to_control_s[] = " BFTPSocket - A c
 static const char __pyx_k_Created_on_21_Apr_2015_A_Cython[] = "\nCreated on 21 Apr 2015\nA Cython module to handle AROWReceive socket requests,and stream synchronisation\n@author: somerdata ltd\n";
 static const char __pyx_k_Receiver_No_server_connection_s[] = "Receiver:No server connection -  %s";
 static const char __pyx_k_Receiver_No_server_connection_s_2[] = " Receiver:No server connection -  %s, trying to reconnect every %d secs";
+static PyObject *__pyx_kp_b_;
 static PyObject *__pyx_kp_s_;
 static PyObject *__pyx_n_s_AF_INET;
 static PyObject *__pyx_n_s_AROWLog;
 static PyObject *__pyx_n_s_AROWLogger;
+static PyObject *__pyx_n_s_BBBBIIIQIIIIQIHH;
 static PyObject *__pyx_n_s_BFTPSocket;
 static PyObject *__pyx_kp_s_BFTPSocket_A_class_to_control_s;
-static PyObject *__pyx_n_s_BFTPSocket_Th_receive_TCP;
 static PyObject *__pyx_n_s_BFTPSocket___init;
 static PyObject *__pyx_n_s_BFTPSocket_close;
 static PyObject *__pyx_n_s_BFTPSocket_connect;
-static PyObject *__pyx_n_s_BFTPSocket_getRxConnect;
+static PyObject *__pyx_n_s_BFTPSocket_get_rx_connect;
 static PyObject *__pyx_kp_s_BFTPSocket_pyx;
 static PyObject *__pyx_n_s_BFTPSocket_receive;
-static PyObject *__pyx_n_s_ECONNRESET;
+static PyObject *__pyx_n_s_BFTPSocket_th_receive_tcp;
+static PyObject *__pyx_n_s_ConnectionResetError;
 static PyObject *__pyx_kp_s_Error_in_packet_decoding_s;
+static PyObject *__pyx_n_s_HEADER_FORMAT;
 static PyObject *__pyx_n_s_HEADER_SIZE;
 static PyObject *__pyx_n_s_KeyboardInterrupt;
 static PyObject *__pyx_n_s_MARKER1;
@@ -1490,14 +1463,15 @@ static PyObject *__pyx_n_s_SOL_SOCKET;
 static PyObject *__pyx_n_s_SOL_TCP;
 static PyObject *__pyx_n_s_SO_REUSEADDR;
 static PyObject *__pyx_n_s_TCP_NODELAY;
-static PyObject *__pyx_n_s_Th_receive_TCP;
 static PyObject *__pyx_n_s_Thread;
+static PyObject *__pyx_n_s_TimeoutError;
 static PyObject *__pyx_kp_b__2;
 static PyObject *__pyx_kp_s__3;
 static PyObject *__pyx_n_s_add_inrate;
 static PyObject *__pyx_n_s_append;
 static PyObject *__pyx_n_s_args;
 static PyObject *__pyx_n_s_buf;
+static PyObject *__pyx_n_s_calcsize;
 static PyObject *__pyx_n_s_chunk;
 static PyObject *__pyx_n_s_clear;
 static PyObject *__pyx_n_s_cline_in_traceback;
@@ -1509,7 +1483,6 @@ static PyObject *__pyx_n_s_directory;
 static PyObject *__pyx_n_s_doc;
 static PyObject *__pyx_n_s_e;
 static PyObject *__pyx_n_s_end;
-static PyObject *__pyx_n_s_errcode;
 static PyObject *__pyx_n_s_errno;
 static PyObject *__pyx_n_s_error;
 static PyObject *__pyx_n_s_extend;
@@ -1519,9 +1492,8 @@ static PyObject *__pyx_n_s_format_exc;
 static PyObject *__pyx_n_s_frame_data;
 static PyObject *__pyx_n_s_functools;
 static PyObject *__pyx_n_s_getLogger;
-static PyObject *__pyx_n_s_getRxConnect;
+static PyObject *__pyx_n_s_get_rx_connect;
 static PyObject *__pyx_n_s_get_setup;
-static PyObject *__pyx_n_s_globs;
 static PyObject *__pyx_n_s_header;
 static PyObject *__pyx_n_s_host;
 static PyObject *__pyx_n_s_import;
@@ -1566,15 +1538,16 @@ static PyObject *__pyx_n_s_stats;
 static PyObject *__pyx_n_s_strttime;
 static PyObject *__pyx_n_s_struct;
 static PyObject *__pyx_n_s_test;
+static PyObject *__pyx_n_s_th_receive_tcp;
 static PyObject *__pyx_n_s_threading;
 static PyObject *__pyx_n_s_time;
 static PyObject *__pyx_n_s_timeout;
 static PyObject *__pyx_n_s_toread;
 static PyObject *__pyx_n_s_traceback;
 static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_RxQueue, PyObject *__pyx_v_decodeEvent, PyObject *__pyx_v_stats, CYTHON_UNUSED PyObject *__pyx_v_sock); /* proto */
-static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_2getRxConnect(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_2get_rx_connect(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_4connect(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_host, PyObject *__pyx_v_port); /* proto */
-static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_6Th_receive_TCP(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_directory, PyObject *__pyx_v_Recv_Stop); /* proto */
+static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_6th_receive_tcp(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_directory, PyObject *__pyx_v_Recv_Stop); /* proto */
 static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_Recv_Stop); /* proto */
 static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_10close(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self); /* proto */
 static __Pyx_CachedCFunction __pyx_umethod_PyByteArray_Type_extend = {0, &__pyx_n_s_extend, 0, 0, 0};
@@ -1604,7 +1577,7 @@ static PyObject *__pyx_codeobj__17;
 /* Late includes */
 
 /* "BFTPSocket.pyx":35
- * 
+ *     """ BFTPSocket - A class to control socket access and data reception """
  * 
  *     def __init__ (self,RxQueue,decodeEvent,stats,sock=None):             # <<<<<<<<<<<<<<
  *         #if sock is None:
@@ -1789,7 +1762,7 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket___init__(CYTHON_UNUSED PyObj
  *         self.MARKER1 = 0xB6
  *         self.MARKER2= 0x3A             # <<<<<<<<<<<<<<
  *         self.MARKER3 = 0x07
- *         self.HEADER_SIZE=globs.HEADER_SIZE
+ *         self.HEADER_SIZE=HEADER_SIZE
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_MARKER2, __pyx_int_58) < 0) __PYX_ERR(0, 48, __pyx_L1_error)
 
@@ -1797,7 +1770,7 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket___init__(CYTHON_UNUSED PyObj
  *         self.MARKER1 = 0xB6
  *         self.MARKER2= 0x3A
  *         self.MARKER3 = 0x07             # <<<<<<<<<<<<<<
- *         self.HEADER_SIZE=globs.HEADER_SIZE
+ *         self.HEADER_SIZE=HEADER_SIZE
  *         self.AROWLogger=logging.getLogger('AROWLog')
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_MARKER3, __pyx_int_7) < 0) __PYX_ERR(0, 49, __pyx_L1_error)
@@ -1805,50 +1778,47 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket___init__(CYTHON_UNUSED PyObj
   /* "BFTPSocket.pyx":50
  *         self.MARKER2= 0x3A
  *         self.MARKER3 = 0x07
- *         self.HEADER_SIZE=globs.HEADER_SIZE             # <<<<<<<<<<<<<<
+ *         self.HEADER_SIZE=HEADER_SIZE             # <<<<<<<<<<<<<<
  *         self.AROWLogger=logging.getLogger('AROWLog')
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_globs); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 50, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_HEADER_SIZE); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_HEADER_SIZE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_HEADER_SIZE, __pyx_t_1) < 0) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_HEADER_SIZE, __pyx_t_2) < 0) __PYX_ERR(0, 50, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "BFTPSocket.pyx":51
  *         self.MARKER3 = 0x07
- *         self.HEADER_SIZE=globs.HEADER_SIZE
+ *         self.HEADER_SIZE=HEADER_SIZE
  *         self.AROWLogger=logging.getLogger('AROWLog')             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_logging); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 51, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_getLogger); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 51, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_logging); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 51, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_getLogger); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 51, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = NULL;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_1)) {
+    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
+    if (likely(__pyx_t_2)) {
       PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_1);
+      __Pyx_INCREF(__pyx_t_2);
       __Pyx_INCREF(function);
       __Pyx_DECREF_SET(__pyx_t_3, function);
     }
   }
-  __pyx_t_2 = (__pyx_t_1) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_1, __pyx_n_s_AROWLog) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_n_s_AROWLog);
-  __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 51, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_2, __pyx_n_s_AROWLog) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_n_s_AROWLog);
+  __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 51, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_AROWLogger, __pyx_t_2) < 0) __PYX_ERR(0, 51, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_AROWLogger, __pyx_t_1) < 0) __PYX_ERR(0, 51, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "BFTPSocket.pyx":35
- * 
+ *     """ BFTPSocket - A class to control socket access and data reception """
  * 
  *     def __init__ (self,RxQueue,decodeEvent,stats,sock=None):             # <<<<<<<<<<<<<<
  *         #if sock is None:
@@ -1873,34 +1843,34 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket___init__(CYTHON_UNUSED PyObj
 /* "BFTPSocket.pyx":54
  * 
  * 
- *     def getRxConnect(self):             # <<<<<<<<<<<<<<
+ *     def get_rx_connect(self):             # <<<<<<<<<<<<<<
  *         return self.isRxConnected
  * 
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_10BFTPSocket_10BFTPSocket_3getRxConnect(PyObject *__pyx_self, PyObject *__pyx_v_self); /*proto*/
-static PyMethodDef __pyx_mdef_10BFTPSocket_10BFTPSocket_3getRxConnect = {"getRxConnect", (PyCFunction)__pyx_pw_10BFTPSocket_10BFTPSocket_3getRxConnect, METH_O, 0};
-static PyObject *__pyx_pw_10BFTPSocket_10BFTPSocket_3getRxConnect(PyObject *__pyx_self, PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_10BFTPSocket_10BFTPSocket_3get_rx_connect(PyObject *__pyx_self, PyObject *__pyx_v_self); /*proto*/
+static PyMethodDef __pyx_mdef_10BFTPSocket_10BFTPSocket_3get_rx_connect = {"get_rx_connect", (PyCFunction)__pyx_pw_10BFTPSocket_10BFTPSocket_3get_rx_connect, METH_O, 0};
+static PyObject *__pyx_pw_10BFTPSocket_10BFTPSocket_3get_rx_connect(PyObject *__pyx_self, PyObject *__pyx_v_self) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("getRxConnect (wrapper)", 0);
-  __pyx_r = __pyx_pf_10BFTPSocket_10BFTPSocket_2getRxConnect(__pyx_self, ((PyObject *)__pyx_v_self));
+  __Pyx_RefNannySetupContext("get_rx_connect (wrapper)", 0);
+  __pyx_r = __pyx_pf_10BFTPSocket_10BFTPSocket_2get_rx_connect(__pyx_self, ((PyObject *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_2getRxConnect(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self) {
+static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_2get_rx_connect(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  __Pyx_RefNannySetupContext("getRxConnect", 0);
+  __Pyx_RefNannySetupContext("get_rx_connect", 0);
 
   /* "BFTPSocket.pyx":55
  * 
- *     def getRxConnect(self):
+ *     def get_rx_connect(self):
  *         return self.isRxConnected             # <<<<<<<<<<<<<<
  * 
  *     def connect(self,host,port):
@@ -1915,7 +1885,7 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_2getRxConnect(CYTHON_UNUSED 
   /* "BFTPSocket.pyx":54
  * 
  * 
- *     def getRxConnect(self):             # <<<<<<<<<<<<<<
+ *     def get_rx_connect(self):             # <<<<<<<<<<<<<<
  *         return self.isRxConnected
  * 
  */
@@ -1923,7 +1893,7 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_2getRxConnect(CYTHON_UNUSED 
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("BFTPSocket.BFTPSocket.getRxConnect", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("BFTPSocket.BFTPSocket.get_rx_connect", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -2452,7 +2422,7 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_4connect(CYTHON_UNUSED PyObj
     /* "BFTPSocket.pyx":75
  * 
  * 
- *         except Exception, e:             # <<<<<<<<<<<<<<
+ *         except Exception as e:             # <<<<<<<<<<<<<<
  *             print ("Receiver:No server connection -  %s" %(e))
  *             self.AROWLogger.info("Receiver:No server connection " +str(e))
  */
@@ -2468,7 +2438,7 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_4connect(CYTHON_UNUSED PyObj
 
       /* "BFTPSocket.pyx":76
  * 
- *         except Exception, e:
+ *         except Exception as e:
  *             print ("Receiver:No server connection -  %s" %(e))             # <<<<<<<<<<<<<<
  *             self.AROWLogger.info("Receiver:No server connection " +str(e))
  *             self.isRxConnected= False
@@ -2479,7 +2449,7 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_4connect(CYTHON_UNUSED PyObj
       __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
 
       /* "BFTPSocket.pyx":77
- *         except Exception, e:
+ *         except Exception as e:
  *             print ("Receiver:No server connection -  %s" %(e))
  *             self.AROWLogger.info("Receiver:No server connection " +str(e))             # <<<<<<<<<<<<<<
  *             self.isRxConnected= False
@@ -2527,7 +2497,7 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_4connect(CYTHON_UNUSED PyObj
  * 
  *             return(-1)             # <<<<<<<<<<<<<<
  * 
- *     def Th_receive_TCP(self,directory,Recv_Stop):
+ *     def th_receive_tcp(self,directory,Recv_Stop):
  */
       __Pyx_XDECREF(__pyx_r);
       __Pyx_INCREF(__pyx_int_neg_1);
@@ -2592,22 +2562,22 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_4connect(CYTHON_UNUSED PyObj
 /* "BFTPSocket.pyx":82
  *             return(-1)
  * 
- *     def Th_receive_TCP(self,directory,Recv_Stop):             # <<<<<<<<<<<<<<
+ *     def th_receive_tcp(self,directory,Recv_Stop):             # <<<<<<<<<<<<<<
  *         """ thread to decode TCP packets """
  * 
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_10BFTPSocket_10BFTPSocket_7Th_receive_TCP(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_10BFTPSocket_10BFTPSocket_6Th_receive_TCP[] = " thread to decode TCP packets ";
-static PyMethodDef __pyx_mdef_10BFTPSocket_10BFTPSocket_7Th_receive_TCP = {"Th_receive_TCP", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_10BFTPSocket_10BFTPSocket_7Th_receive_TCP, METH_VARARGS|METH_KEYWORDS, __pyx_doc_10BFTPSocket_10BFTPSocket_6Th_receive_TCP};
-static PyObject *__pyx_pw_10BFTPSocket_10BFTPSocket_7Th_receive_TCP(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_10BFTPSocket_10BFTPSocket_7th_receive_tcp(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_10BFTPSocket_10BFTPSocket_6th_receive_tcp[] = " thread to decode TCP packets ";
+static PyMethodDef __pyx_mdef_10BFTPSocket_10BFTPSocket_7th_receive_tcp = {"th_receive_tcp", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_10BFTPSocket_10BFTPSocket_7th_receive_tcp, METH_VARARGS|METH_KEYWORDS, __pyx_doc_10BFTPSocket_10BFTPSocket_6th_receive_tcp};
+static PyObject *__pyx_pw_10BFTPSocket_10BFTPSocket_7th_receive_tcp(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_self = 0;
   CYTHON_UNUSED PyObject *__pyx_v_directory = 0;
   PyObject *__pyx_v_Recv_Stop = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("Th_receive_TCP (wrapper)", 0);
+  __Pyx_RefNannySetupContext("th_receive_tcp (wrapper)", 0);
   {
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_self,&__pyx_n_s_directory,&__pyx_n_s_Recv_Stop,0};
     PyObject* values[3] = {0,0,0};
@@ -2633,17 +2603,17 @@ static PyObject *__pyx_pw_10BFTPSocket_10BFTPSocket_7Th_receive_TCP(PyObject *__
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_directory)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("Th_receive_TCP", 1, 3, 3, 1); __PYX_ERR(0, 82, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("th_receive_tcp", 1, 3, 3, 1); __PYX_ERR(0, 82, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_Recv_Stop)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("Th_receive_TCP", 1, 3, 3, 2); __PYX_ERR(0, 82, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("th_receive_tcp", 1, 3, 3, 2); __PYX_ERR(0, 82, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "Th_receive_TCP") < 0)) __PYX_ERR(0, 82, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "th_receive_tcp") < 0)) __PYX_ERR(0, 82, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -2658,20 +2628,20 @@ static PyObject *__pyx_pw_10BFTPSocket_10BFTPSocket_7Th_receive_TCP(PyObject *__
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("Th_receive_TCP", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 82, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("th_receive_tcp", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 82, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("BFTPSocket.BFTPSocket.Th_receive_TCP", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("BFTPSocket.BFTPSocket.th_receive_tcp", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_10BFTPSocket_10BFTPSocket_6Th_receive_TCP(__pyx_self, __pyx_v_self, __pyx_v_directory, __pyx_v_Recv_Stop);
+  __pyx_r = __pyx_pf_10BFTPSocket_10BFTPSocket_6th_receive_tcp(__pyx_self, __pyx_v_self, __pyx_v_directory, __pyx_v_Recv_Stop);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_6Th_receive_TCP(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_directory, PyObject *__pyx_v_Recv_Stop) {
+static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_6th_receive_tcp(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_directory, PyObject *__pyx_v_Recv_Stop) {
   PyObject *__pyx_v_ReceiveTCP = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -2679,7 +2649,7 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_6Th_receive_TCP(CYTHON_UNUSE
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
   PyObject *__pyx_t_4 = NULL;
-  __Pyx_RefNannySetupContext("Th_receive_TCP", 0);
+  __Pyx_RefNannySetupContext("th_receive_tcp", 0);
 
   /* "BFTPSocket.pyx":86
  * 
@@ -2758,7 +2728,7 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_6Th_receive_TCP(CYTHON_UNUSE
   /* "BFTPSocket.pyx":82
  *             return(-1)
  * 
- *     def Th_receive_TCP(self,directory,Recv_Stop):             # <<<<<<<<<<<<<<
+ *     def th_receive_tcp(self,directory,Recv_Stop):             # <<<<<<<<<<<<<<
  *         """ thread to decode TCP packets """
  * 
  */
@@ -2771,7 +2741,7 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_6Th_receive_TCP(CYTHON_UNUSE
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_AddTraceback("BFTPSocket.BFTPSocket.Th_receive_TCP", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("BFTPSocket.BFTPSocket.th_receive_tcp", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_ReceiveTCP);
@@ -2866,9 +2836,8 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
   PyObject *__pyx_v_lenf = NULL;
   PyObject *__pyx_v_index1 = NULL;
   PyObject *__pyx_v_intvltime = NULL;
-  PyObject *__pyx_v_e = NULL;
-  PyObject *__pyx_v_errcode = NULL;
   PyObject *__pyx_v_msg = NULL;
+  PyObject *__pyx_v_e = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3604,7 +3573,7 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
  *                         else:
  *                             try:             # <<<<<<<<<<<<<<
  *                                 chunk =self.sock.recv(toread)
- *                                 if chunk=="":#socket lost
+ *                                 if chunk==b"":#socket lost
  */
               /*else*/ {
                 {
@@ -3620,7 +3589,7 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
  *                         else:
  *                             try:
  *                                 chunk =self.sock.recv(toread)             # <<<<<<<<<<<<<<
- *                                 if chunk=="":#socket lost
+ *                                 if chunk==b"":#socket lost
  *                                     break
  */
                     __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_sock); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 163, __pyx_L33_error)
@@ -3652,37 +3621,37 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
                     /* "BFTPSocket.pyx":164
  *                             try:
  *                                 chunk =self.sock.recv(toread)
- *                                 if chunk=="":#socket lost             # <<<<<<<<<<<<<<
+ *                                 if chunk==b"":#socket lost             # <<<<<<<<<<<<<<
  *                                     break
  *                                 buf.extend(chunk)
  */
-                    __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_v_chunk, __pyx_kp_s_, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 164, __pyx_L33_error)
+                    __pyx_t_6 = (__Pyx_PyBytes_Equals(__pyx_v_chunk, __pyx_kp_b_, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 164, __pyx_L33_error)
                     if (__pyx_t_6) {
 
                       /* "BFTPSocket.pyx":165
  *                                 chunk =self.sock.recv(toread)
- *                                 if chunk=="":#socket lost
+ *                                 if chunk==b"":#socket lost
  *                                     break             # <<<<<<<<<<<<<<
  *                                 buf.extend(chunk)
- *                             except socket.error,e:
+ *                             except TimeoutError:
  */
                       goto __pyx_L38_try_break;
 
                       /* "BFTPSocket.pyx":164
  *                             try:
  *                                 chunk =self.sock.recv(toread)
- *                                 if chunk=="":#socket lost             # <<<<<<<<<<<<<<
+ *                                 if chunk==b"":#socket lost             # <<<<<<<<<<<<<<
  *                                     break
  *                                 buf.extend(chunk)
  */
                     }
 
                     /* "BFTPSocket.pyx":166
- *                                 if chunk=="":#socket lost
+ *                                 if chunk==b"":#socket lost
  *                                     break
  *                                 buf.extend(chunk)             # <<<<<<<<<<<<<<
- *                             except socket.error,e:
- *                                 errcode=e[0]
+ *                             except TimeoutError:
+ *                                 pass
  */
                     __pyx_t_2 = __Pyx_CallUnboundCMethod1(&__pyx_umethod_PyByteArray_Type_extend, __pyx_v_buf, __pyx_v_chunk); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 166, __pyx_L33_error)
                     __Pyx_GOTREF(__pyx_t_2);
@@ -3693,7 +3662,7 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
  *                         else:
  *                             try:             # <<<<<<<<<<<<<<
  *                                 chunk =self.sock.recv(toread)
- *                                 if chunk=="":#socket lost
+ *                                 if chunk==b"":#socket lost
  */
                   }
                   __Pyx_XDECREF(__pyx_t_17); __pyx_t_17 = 0;
@@ -3709,193 +3678,186 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
                   /* "BFTPSocket.pyx":167
  *                                     break
  *                                 buf.extend(chunk)
- *                             except socket.error,e:             # <<<<<<<<<<<<<<
- *                                 errcode=e[0]
- *                                 if errcode==errno.ECONNRESET:
+ *                             except TimeoutError:             # <<<<<<<<<<<<<<
+ *                                 pass
+ *                             except ConnectionResetError:
  */
                   __Pyx_ErrFetch(&__pyx_t_2, &__pyx_t_1, &__pyx_t_3);
-                  __Pyx_GetModuleGlobalName(__pyx_t_20, __pyx_n_s_socket); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 167, __pyx_L35_except_error)
+                  __Pyx_GetModuleGlobalName(__pyx_t_20, __pyx_n_s_TimeoutError); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 167, __pyx_L35_except_error)
                   __Pyx_GOTREF(__pyx_t_20);
-                  __pyx_t_21 = __Pyx_PyObject_GetAttrStr(__pyx_t_20, __pyx_n_s_error); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 167, __pyx_L35_except_error)
-                  __Pyx_GOTREF(__pyx_t_21);
+                  __pyx_t_4 = __Pyx_PyErr_GivenExceptionMatches(__pyx_t_2, __pyx_t_20);
                   __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
-                  __pyx_t_4 = __Pyx_PyErr_GivenExceptionMatches(__pyx_t_2, __pyx_t_21);
-                  __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
                   __Pyx_ErrRestore(__pyx_t_2, __pyx_t_1, __pyx_t_3);
                   __pyx_t_2 = 0; __pyx_t_1 = 0; __pyx_t_3 = 0;
                   if (__pyx_t_4) {
+                    __Pyx_ErrRestore(0,0,0);
+                    goto __pyx_L34_exception_handled;
+                  }
+
+                  /* "BFTPSocket.pyx":169
+ *                             except TimeoutError:
+ *                                 pass
+ *                             except ConnectionResetError:             # <<<<<<<<<<<<<<
+ *                                 chunk=None
+ *                                 msg=' Peer reset - buffer overflow?'
+ */
+                  __Pyx_ErrFetch(&__pyx_t_3, &__pyx_t_1, &__pyx_t_2);
+                  __Pyx_GetModuleGlobalName(__pyx_t_20, __pyx_n_s_ConnectionResetError); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 169, __pyx_L35_except_error)
+                  __Pyx_GOTREF(__pyx_t_20);
+                  __pyx_t_4 = __Pyx_PyErr_GivenExceptionMatches(__pyx_t_3, __pyx_t_20);
+                  __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
+                  __Pyx_ErrRestore(__pyx_t_3, __pyx_t_1, __pyx_t_2);
+                  __pyx_t_3 = 0; __pyx_t_1 = 0; __pyx_t_2 = 0;
+                  if (__pyx_t_4) {
                     __Pyx_AddTraceback("BFTPSocket.BFTPSocket.receive", __pyx_clineno, __pyx_lineno, __pyx_filename);
-                    if (__Pyx_GetException(&__pyx_t_3, &__pyx_t_1, &__pyx_t_2) < 0) __PYX_ERR(0, 167, __pyx_L35_except_error)
+                    if (__Pyx_GetException(&__pyx_t_2, &__pyx_t_1, &__pyx_t_3) < 0) __PYX_ERR(0, 169, __pyx_L35_except_error)
+                    __Pyx_GOTREF(__pyx_t_2);
+                    __Pyx_GOTREF(__pyx_t_1);
+                    __Pyx_GOTREF(__pyx_t_3);
+
+                    /* "BFTPSocket.pyx":170
+ *                                 pass
+ *                             except ConnectionResetError:
+ *                                 chunk=None             # <<<<<<<<<<<<<<
+ *                                 msg=' Peer reset - buffer overflow?'
+ *                                 print (msg +'\n')
+ */
+                    __Pyx_INCREF(Py_None);
+                    __Pyx_DECREF_SET(__pyx_v_chunk, Py_None);
+
+                    /* "BFTPSocket.pyx":171
+ *                             except ConnectionResetError:
+ *                                 chunk=None
+ *                                 msg=' Peer reset - buffer overflow?'             # <<<<<<<<<<<<<<
+ *                                 print (msg +'\n')
+ *                                 self.AROWLogger.critical(msg)
+ */
+                    __Pyx_INCREF(__pyx_kp_s_Peer_reset_buffer_overflow);
+                    __Pyx_XDECREF_SET(__pyx_v_msg, __pyx_kp_s_Peer_reset_buffer_overflow);
+
+                    /* "BFTPSocket.pyx":172
+ *                                 chunk=None
+ *                                 msg=' Peer reset - buffer overflow?'
+ *                                 print (msg +'\n')             # <<<<<<<<<<<<<<
+ *                                 self.AROWLogger.critical(msg)
+ *                                 break
+ */
+                    __pyx_t_20 = PyNumber_Add(__pyx_v_msg, __pyx_kp_s__3); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 172, __pyx_L35_except_error)
+                    __Pyx_GOTREF(__pyx_t_20);
+                    if (__Pyx_PrintOne(0, __pyx_t_20) < 0) __PYX_ERR(0, 172, __pyx_L35_except_error)
+                    __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
+
+                    /* "BFTPSocket.pyx":173
+ *                                 msg=' Peer reset - buffer overflow?'
+ *                                 print (msg +'\n')
+ *                                 self.AROWLogger.critical(msg)             # <<<<<<<<<<<<<<
+ *                                 break
+ * 
+ */
+                    __pyx_t_21 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_AROWLogger); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 173, __pyx_L35_except_error)
+                    __Pyx_GOTREF(__pyx_t_21);
+                    __pyx_t_22 = __Pyx_PyObject_GetAttrStr(__pyx_t_21, __pyx_n_s_critical); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 173, __pyx_L35_except_error)
+                    __Pyx_GOTREF(__pyx_t_22);
+                    __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
+                    __pyx_t_21 = NULL;
+                    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_22))) {
+                      __pyx_t_21 = PyMethod_GET_SELF(__pyx_t_22);
+                      if (likely(__pyx_t_21)) {
+                        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_22);
+                        __Pyx_INCREF(__pyx_t_21);
+                        __Pyx_INCREF(function);
+                        __Pyx_DECREF_SET(__pyx_t_22, function);
+                      }
+                    }
+                    __pyx_t_20 = (__pyx_t_21) ? __Pyx_PyObject_Call2Args(__pyx_t_22, __pyx_t_21, __pyx_v_msg) : __Pyx_PyObject_CallOneArg(__pyx_t_22, __pyx_v_msg);
+                    __Pyx_XDECREF(__pyx_t_21); __pyx_t_21 = 0;
+                    if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 173, __pyx_L35_except_error)
+                    __Pyx_GOTREF(__pyx_t_20);
+                    __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
+                    __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
+
+                    /* "BFTPSocket.pyx":174
+ *                                 print (msg +'\n')
+ *                                 self.AROWLogger.critical(msg)
+ *                                 break             # <<<<<<<<<<<<<<
+ * 
+ *                             except Exception as e:
+ */
+                    goto __pyx_L42_except_break;
+                    __pyx_L42_except_break:;
+                    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+                    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+                    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+                    goto __pyx_L38_try_break;
+                  }
+
+                  /* "BFTPSocket.pyx":176
+ *                                 break
+ * 
+ *                             except Exception as e:             # <<<<<<<<<<<<<<
+ *                                 if Recv_Stop.is_set():
+ *                                     raise KeyboardInterrupt
+ */
+                  __pyx_t_4 = __Pyx_PyErr_ExceptionMatches(((PyObject *)(&((PyTypeObject*)PyExc_Exception)[0])));
+                  if (__pyx_t_4) {
+                    __Pyx_AddTraceback("BFTPSocket.BFTPSocket.receive", __pyx_clineno, __pyx_lineno, __pyx_filename);
+                    if (__Pyx_GetException(&__pyx_t_3, &__pyx_t_1, &__pyx_t_2) < 0) __PYX_ERR(0, 176, __pyx_L35_except_error)
                     __Pyx_GOTREF(__pyx_t_3);
                     __Pyx_GOTREF(__pyx_t_1);
                     __Pyx_GOTREF(__pyx_t_2);
                     __Pyx_INCREF(__pyx_t_1);
                     __Pyx_XDECREF_SET(__pyx_v_e, __pyx_t_1);
 
-                    /* "BFTPSocket.pyx":168
- *                                 buf.extend(chunk)
- *                             except socket.error,e:
- *                                 errcode=e[0]             # <<<<<<<<<<<<<<
- *                                 if errcode==errno.ECONNRESET:
- *                                     chunk=None
- */
-                    __pyx_t_21 = __Pyx_GetItemInt(__pyx_v_e, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 168, __pyx_L35_except_error)
-                    __Pyx_GOTREF(__pyx_t_21);
-                    __Pyx_XDECREF_SET(__pyx_v_errcode, __pyx_t_21);
-                    __pyx_t_21 = 0;
-
-                    /* "BFTPSocket.pyx":169
- *                             except socket.error,e:
- *                                 errcode=e[0]
- *                                 if errcode==errno.ECONNRESET:             # <<<<<<<<<<<<<<
- *                                     chunk=None
- *                                     msg=' Peer reset - buffer overflow?'
- */
-                    __Pyx_GetModuleGlobalName(__pyx_t_21, __pyx_n_s_errno); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 169, __pyx_L35_except_error)
-                    __Pyx_GOTREF(__pyx_t_21);
-                    __pyx_t_20 = __Pyx_PyObject_GetAttrStr(__pyx_t_21, __pyx_n_s_ECONNRESET); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 169, __pyx_L35_except_error)
-                    __Pyx_GOTREF(__pyx_t_20);
-                    __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
-                    __pyx_t_21 = PyObject_RichCompare(__pyx_v_errcode, __pyx_t_20, Py_EQ); __Pyx_XGOTREF(__pyx_t_21); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 169, __pyx_L35_except_error)
-                    __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
-                    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_21); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 169, __pyx_L35_except_error)
-                    __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
-                    if (__pyx_t_6) {
-
-                      /* "BFTPSocket.pyx":170
- *                                 errcode=e[0]
- *                                 if errcode==errno.ECONNRESET:
- *                                     chunk=None             # <<<<<<<<<<<<<<
- *                                     msg=' Peer reset - buffer overflow?'
- *                                     print (msg +'\n')
- */
-                      __Pyx_INCREF(Py_None);
-                      __Pyx_DECREF_SET(__pyx_v_chunk, Py_None);
-
-                      /* "BFTPSocket.pyx":171
- *                                 if errcode==errno.ECONNRESET:
- *                                     chunk=None
- *                                     msg=' Peer reset - buffer overflow?'             # <<<<<<<<<<<<<<
- *                                     print (msg +'\n')
- *                                     self.AROWLogger.critical(msg)
- */
-                      __Pyx_INCREF(__pyx_kp_s_Peer_reset_buffer_overflow);
-                      __Pyx_XDECREF_SET(__pyx_v_msg, __pyx_kp_s_Peer_reset_buffer_overflow);
-
-                      /* "BFTPSocket.pyx":172
- *                                     chunk=None
- *                                     msg=' Peer reset - buffer overflow?'
- *                                     print (msg +'\n')             # <<<<<<<<<<<<<<
- *                                     self.AROWLogger.critical(msg)
- *                                     break
- */
-                      __pyx_t_21 = PyNumber_Add(__pyx_v_msg, __pyx_kp_s__3); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 172, __pyx_L35_except_error)
-                      __Pyx_GOTREF(__pyx_t_21);
-                      if (__Pyx_PrintOne(0, __pyx_t_21) < 0) __PYX_ERR(0, 172, __pyx_L35_except_error)
-                      __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
-
-                      /* "BFTPSocket.pyx":173
- *                                     msg=' Peer reset - buffer overflow?'
- *                                     print (msg +'\n')
- *                                     self.AROWLogger.critical(msg)             # <<<<<<<<<<<<<<
- *                                     break
- *                                 if Recv_Stop.is_set():
- */
-                      __pyx_t_20 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_AROWLogger); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 173, __pyx_L35_except_error)
-                      __Pyx_GOTREF(__pyx_t_20);
-                      __pyx_t_22 = __Pyx_PyObject_GetAttrStr(__pyx_t_20, __pyx_n_s_critical); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 173, __pyx_L35_except_error)
-                      __Pyx_GOTREF(__pyx_t_22);
-                      __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
-                      __pyx_t_20 = NULL;
-                      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_22))) {
-                        __pyx_t_20 = PyMethod_GET_SELF(__pyx_t_22);
-                        if (likely(__pyx_t_20)) {
-                          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_22);
-                          __Pyx_INCREF(__pyx_t_20);
-                          __Pyx_INCREF(function);
-                          __Pyx_DECREF_SET(__pyx_t_22, function);
-                        }
-                      }
-                      __pyx_t_21 = (__pyx_t_20) ? __Pyx_PyObject_Call2Args(__pyx_t_22, __pyx_t_20, __pyx_v_msg) : __Pyx_PyObject_CallOneArg(__pyx_t_22, __pyx_v_msg);
-                      __Pyx_XDECREF(__pyx_t_20); __pyx_t_20 = 0;
-                      if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 173, __pyx_L35_except_error)
-                      __Pyx_GOTREF(__pyx_t_21);
-                      __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
-                      __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
-
-                      /* "BFTPSocket.pyx":174
- *                                     print (msg +'\n')
- *                                     self.AROWLogger.critical(msg)
- *                                     break             # <<<<<<<<<<<<<<
- *                                 if Recv_Stop.is_set():
- *                                     raise KeyboardInterrupt
- */
-                      goto __pyx_L42_except_break;
-
-                      /* "BFTPSocket.pyx":169
- *                             except socket.error,e:
- *                                 errcode=e[0]
- *                                 if errcode==errno.ECONNRESET:             # <<<<<<<<<<<<<<
- *                                     chunk=None
- *                                     msg=' Peer reset - buffer overflow?'
- */
-                    }
-
-                    /* "BFTPSocket.pyx":175
- *                                     self.AROWLogger.critical(msg)
- *                                     break
+                    /* "BFTPSocket.pyx":177
+ * 
+ *                             except Exception as e:
  *                                 if Recv_Stop.is_set():             # <<<<<<<<<<<<<<
  *                                     raise KeyboardInterrupt
- *                             #toread-=len(chunk)
+ * 
  */
-                    __pyx_t_22 = __Pyx_PyObject_GetAttrStr(__pyx_v_Recv_Stop, __pyx_n_s_is_set); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 175, __pyx_L35_except_error)
+                    __pyx_t_22 = __Pyx_PyObject_GetAttrStr(__pyx_v_Recv_Stop, __pyx_n_s_is_set); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 177, __pyx_L35_except_error)
                     __Pyx_GOTREF(__pyx_t_22);
-                    __pyx_t_20 = NULL;
+                    __pyx_t_21 = NULL;
                     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_22))) {
-                      __pyx_t_20 = PyMethod_GET_SELF(__pyx_t_22);
-                      if (likely(__pyx_t_20)) {
+                      __pyx_t_21 = PyMethod_GET_SELF(__pyx_t_22);
+                      if (likely(__pyx_t_21)) {
                         PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_22);
-                        __Pyx_INCREF(__pyx_t_20);
+                        __Pyx_INCREF(__pyx_t_21);
                         __Pyx_INCREF(function);
                         __Pyx_DECREF_SET(__pyx_t_22, function);
                       }
                     }
-                    __pyx_t_21 = (__pyx_t_20) ? __Pyx_PyObject_CallOneArg(__pyx_t_22, __pyx_t_20) : __Pyx_PyObject_CallNoArg(__pyx_t_22);
-                    __Pyx_XDECREF(__pyx_t_20); __pyx_t_20 = 0;
-                    if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 175, __pyx_L35_except_error)
-                    __Pyx_GOTREF(__pyx_t_21);
+                    __pyx_t_20 = (__pyx_t_21) ? __Pyx_PyObject_CallOneArg(__pyx_t_22, __pyx_t_21) : __Pyx_PyObject_CallNoArg(__pyx_t_22);
+                    __Pyx_XDECREF(__pyx_t_21); __pyx_t_21 = 0;
+                    if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 177, __pyx_L35_except_error)
+                    __Pyx_GOTREF(__pyx_t_20);
                     __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
-                    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_21); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 175, __pyx_L35_except_error)
-                    __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
+                    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_20); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 177, __pyx_L35_except_error)
+                    __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
                     if (unlikely(__pyx_t_6)) {
 
-                      /* "BFTPSocket.pyx":176
- *                                     break
+                      /* "BFTPSocket.pyx":178
+ *                             except Exception as e:
  *                                 if Recv_Stop.is_set():
  *                                     raise KeyboardInterrupt             # <<<<<<<<<<<<<<
- *                             #toread-=len(chunk)
- *                             #print len(chunk)
+ * 
+ *                     #packet=self.sock.recv(RX_BUF_LEN)
  */
                       __Pyx_Raise(__pyx_builtin_KeyboardInterrupt, 0, 0, 0);
-                      __PYX_ERR(0, 176, __pyx_L35_except_error)
+                      __PYX_ERR(0, 178, __pyx_L35_except_error)
 
-                      /* "BFTPSocket.pyx":175
- *                                     self.AROWLogger.critical(msg)
- *                                     break
+                      /* "BFTPSocket.pyx":177
+ * 
+ *                             except Exception as e:
  *                                 if Recv_Stop.is_set():             # <<<<<<<<<<<<<<
  *                                     raise KeyboardInterrupt
- *                             #toread-=len(chunk)
+ * 
  */
                     }
                     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
                     __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
                     __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
                     goto __pyx_L34_exception_handled;
-                    __pyx_L42_except_break:;
-                    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-                    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-                    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-                    goto __pyx_L38_try_break;
                   }
                   goto __pyx_L35_except_error;
                   __pyx_L35_except_error:;
@@ -3905,7 +3867,7 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
  *                         else:
  *                             try:             # <<<<<<<<<<<<<<
  *                                 chunk =self.sock.recv(toread)
- *                                 if chunk=="":#socket lost
+ *                                 if chunk==b"":#socket lost
  */
                   __Pyx_XGIVEREF(__pyx_t_17);
                   __Pyx_XGIVEREF(__pyx_t_18);
@@ -3929,47 +3891,47 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
             }
             __pyx_L22_break:;
 
-            /* "BFTPSocket.pyx":184
+            /* "BFTPSocket.pyx":181
  * 
  *                     #packet=self.sock.recv(RX_BUF_LEN)
  *                     statlen+=len(frame_data)             # <<<<<<<<<<<<<<
  *                     if intvltime>period:
  *                         self.stats.add_inrate(statlen)
  */
-            __pyx_t_15 = PyObject_Length(__pyx_v_frame_data); if (unlikely(__pyx_t_15 == ((Py_ssize_t)-1))) __PYX_ERR(0, 184, __pyx_L13_error)
-            __pyx_t_2 = PyInt_FromSsize_t(__pyx_t_15); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 184, __pyx_L13_error)
+            __pyx_t_15 = PyObject_Length(__pyx_v_frame_data); if (unlikely(__pyx_t_15 == ((Py_ssize_t)-1))) __PYX_ERR(0, 181, __pyx_L13_error)
+            __pyx_t_2 = PyInt_FromSsize_t(__pyx_t_15); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 181, __pyx_L13_error)
             __Pyx_GOTREF(__pyx_t_2);
-            __pyx_t_1 = PyNumber_InPlaceAdd(__pyx_v_statlen, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 184, __pyx_L13_error)
+            __pyx_t_1 = PyNumber_InPlaceAdd(__pyx_v_statlen, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 181, __pyx_L13_error)
             __Pyx_GOTREF(__pyx_t_1);
             __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
             __Pyx_DECREF_SET(__pyx_v_statlen, __pyx_t_1);
             __pyx_t_1 = 0;
 
-            /* "BFTPSocket.pyx":185
+            /* "BFTPSocket.pyx":182
  *                     #packet=self.sock.recv(RX_BUF_LEN)
  *                     statlen+=len(frame_data)
  *                     if intvltime>period:             # <<<<<<<<<<<<<<
  *                         self.stats.add_inrate(statlen)
  *                         #if options.recovery == True:
  */
-            __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_period); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 185, __pyx_L13_error)
+            __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_period); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 182, __pyx_L13_error)
             __Pyx_GOTREF(__pyx_t_1);
-            __pyx_t_2 = PyObject_RichCompare(__pyx_v_intvltime, __pyx_t_1, Py_GT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 185, __pyx_L13_error)
+            __pyx_t_2 = PyObject_RichCompare(__pyx_v_intvltime, __pyx_t_1, Py_GT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 182, __pyx_L13_error)
             __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-            __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 185, __pyx_L13_error)
+            __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 182, __pyx_L13_error)
             __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
             if (__pyx_t_6) {
 
-              /* "BFTPSocket.pyx":186
+              /* "BFTPSocket.pyx":183
  *                     statlen+=len(frame_data)
  *                     if intvltime>period:
  *                         self.stats.add_inrate(statlen)             # <<<<<<<<<<<<<<
  *                         #if options.recovery == True:
  *                             #self.stats.checkManifest()
  */
-              __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_stats); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 186, __pyx_L13_error)
+              __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_stats); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 183, __pyx_L13_error)
               __Pyx_GOTREF(__pyx_t_1);
-              __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_add_inrate); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 186, __pyx_L13_error)
+              __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_add_inrate); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 183, __pyx_L13_error)
               __Pyx_GOTREF(__pyx_t_3);
               __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
               __pyx_t_1 = NULL;
@@ -3984,21 +3946,21 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
               }
               __pyx_t_2 = (__pyx_t_1) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_1, __pyx_v_statlen) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_statlen);
               __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-              if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 186, __pyx_L13_error)
+              if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 183, __pyx_L13_error)
               __Pyx_GOTREF(__pyx_t_2);
               __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
               __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-              /* "BFTPSocket.pyx":189
+              /* "BFTPSocket.pyx":186
  *                         #if options.recovery == True:
  *                             #self.stats.checkManifest()
  *                         strttime=time.time()             # <<<<<<<<<<<<<<
  *                         statlen=0
  * 
  */
-              __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_time); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 189, __pyx_L13_error)
+              __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_time); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 186, __pyx_L13_error)
               __Pyx_GOTREF(__pyx_t_3);
-              __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_time); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 189, __pyx_L13_error)
+              __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_time); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 186, __pyx_L13_error)
               __Pyx_GOTREF(__pyx_t_1);
               __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
               __pyx_t_3 = NULL;
@@ -4013,13 +3975,13 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
               }
               __pyx_t_2 = (__pyx_t_3) ? __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3) : __Pyx_PyObject_CallNoArg(__pyx_t_1);
               __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-              if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 189, __pyx_L13_error)
+              if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 186, __pyx_L13_error)
               __Pyx_GOTREF(__pyx_t_2);
               __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
               __Pyx_DECREF_SET(__pyx_v_strttime, __pyx_t_2);
               __pyx_t_2 = 0;
 
-              /* "BFTPSocket.pyx":190
+              /* "BFTPSocket.pyx":187
  *                             #self.stats.checkManifest()
  *                         strttime=time.time()
  *                         statlen=0             # <<<<<<<<<<<<<<
@@ -4029,7 +3991,7 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
               __Pyx_INCREF(__pyx_int_0);
               __Pyx_DECREF_SET(__pyx_v_statlen, __pyx_int_0);
 
-              /* "BFTPSocket.pyx":185
+              /* "BFTPSocket.pyx":182
  *                     #packet=self.sock.recv(RX_BUF_LEN)
  *                     statlen+=len(frame_data)
  *                     if intvltime>period:             # <<<<<<<<<<<<<<
@@ -4051,75 +4013,75 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
           __Pyx_XDECREF(__pyx_t_12); __pyx_t_12 = 0;
           goto __pyx_L20_try_end;
           __pyx_L13_error:;
-          __Pyx_XDECREF(__pyx_t_20); __pyx_t_20 = 0;
-          __Pyx_XDECREF(__pyx_t_22); __pyx_t_22 = 0;
           __Pyx_XDECREF(__pyx_t_21); __pyx_t_21 = 0;
+          __Pyx_XDECREF(__pyx_t_22); __pyx_t_22 = 0;
+          __Pyx_XDECREF(__pyx_t_20); __pyx_t_20 = 0;
           __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
           __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
           __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-          /* "BFTPSocket.pyx":193
+          /* "BFTPSocket.pyx":190
  * 
  *                     #decodeEvent.clear()# this causes the processing to wait until the socket has timed out
  *                 except socket.timeout:             # <<<<<<<<<<<<<<
  *                     self.decodeEvent.set()
- *                     #packet=""
+ *                     continue
  */
           __Pyx_ErrFetch(&__pyx_t_2, &__pyx_t_1, &__pyx_t_3);
-          __Pyx_GetModuleGlobalName(__pyx_t_21, __pyx_n_s_socket); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 193, __pyx_L15_except_error)
-          __Pyx_GOTREF(__pyx_t_21);
-          __pyx_t_22 = __Pyx_PyObject_GetAttrStr(__pyx_t_21, __pyx_n_s_timeout); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 193, __pyx_L15_except_error)
+          __Pyx_GetModuleGlobalName(__pyx_t_20, __pyx_n_s_socket); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 190, __pyx_L15_except_error)
+          __Pyx_GOTREF(__pyx_t_20);
+          __pyx_t_22 = __Pyx_PyObject_GetAttrStr(__pyx_t_20, __pyx_n_s_timeout); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 190, __pyx_L15_except_error)
           __Pyx_GOTREF(__pyx_t_22);
-          __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
+          __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
           __pyx_t_4 = __Pyx_PyErr_GivenExceptionMatches(__pyx_t_2, __pyx_t_22);
           __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
           __Pyx_ErrRestore(__pyx_t_2, __pyx_t_1, __pyx_t_3);
           __pyx_t_2 = 0; __pyx_t_1 = 0; __pyx_t_3 = 0;
           if (__pyx_t_4) {
             __Pyx_AddTraceback("BFTPSocket.BFTPSocket.receive", __pyx_clineno, __pyx_lineno, __pyx_filename);
-            if (__Pyx_GetException(&__pyx_t_3, &__pyx_t_1, &__pyx_t_2) < 0) __PYX_ERR(0, 193, __pyx_L15_except_error)
+            if (__Pyx_GetException(&__pyx_t_3, &__pyx_t_1, &__pyx_t_2) < 0) __PYX_ERR(0, 190, __pyx_L15_except_error)
             __Pyx_GOTREF(__pyx_t_3);
             __Pyx_GOTREF(__pyx_t_1);
             __Pyx_GOTREF(__pyx_t_2);
 
-            /* "BFTPSocket.pyx":194
+            /* "BFTPSocket.pyx":191
  *                     #decodeEvent.clear()# this causes the processing to wait until the socket has timed out
  *                 except socket.timeout:
  *                     self.decodeEvent.set()             # <<<<<<<<<<<<<<
- *                     #packet=""
  *                     continue
+ * 
  */
-            __pyx_t_21 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_decodeEvent); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 194, __pyx_L15_except_error)
-            __Pyx_GOTREF(__pyx_t_21);
-            __pyx_t_20 = __Pyx_PyObject_GetAttrStr(__pyx_t_21, __pyx_n_s_set); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 194, __pyx_L15_except_error)
+            __pyx_t_20 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_decodeEvent); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 191, __pyx_L15_except_error)
             __Pyx_GOTREF(__pyx_t_20);
-            __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
-            __pyx_t_21 = NULL;
-            if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_20))) {
-              __pyx_t_21 = PyMethod_GET_SELF(__pyx_t_20);
-              if (likely(__pyx_t_21)) {
-                PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_20);
-                __Pyx_INCREF(__pyx_t_21);
+            __pyx_t_21 = __Pyx_PyObject_GetAttrStr(__pyx_t_20, __pyx_n_s_set); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 191, __pyx_L15_except_error)
+            __Pyx_GOTREF(__pyx_t_21);
+            __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
+            __pyx_t_20 = NULL;
+            if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_21))) {
+              __pyx_t_20 = PyMethod_GET_SELF(__pyx_t_21);
+              if (likely(__pyx_t_20)) {
+                PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_21);
+                __Pyx_INCREF(__pyx_t_20);
                 __Pyx_INCREF(function);
-                __Pyx_DECREF_SET(__pyx_t_20, function);
+                __Pyx_DECREF_SET(__pyx_t_21, function);
               }
             }
-            __pyx_t_22 = (__pyx_t_21) ? __Pyx_PyObject_CallOneArg(__pyx_t_20, __pyx_t_21) : __Pyx_PyObject_CallNoArg(__pyx_t_20);
-            __Pyx_XDECREF(__pyx_t_21); __pyx_t_21 = 0;
-            if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 194, __pyx_L15_except_error)
+            __pyx_t_22 = (__pyx_t_20) ? __Pyx_PyObject_CallOneArg(__pyx_t_21, __pyx_t_20) : __Pyx_PyObject_CallNoArg(__pyx_t_21);
+            __Pyx_XDECREF(__pyx_t_20); __pyx_t_20 = 0;
+            if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 191, __pyx_L15_except_error)
             __Pyx_GOTREF(__pyx_t_22);
-            __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
+            __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
             __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
 
-            /* "BFTPSocket.pyx":196
+            /* "BFTPSocket.pyx":192
+ *                 except socket.timeout:
  *                     self.decodeEvent.set()
- *                     #packet=""
  *                     continue             # <<<<<<<<<<<<<<
  * 
  *                 if not chunk:# stream has disconnected
  */
-            goto __pyx_L48_except_continue;
-            __pyx_L48_except_continue:;
+            goto __pyx_L49_except_continue;
+            __pyx_L49_except_continue:;
             __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
             __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
             __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -4149,20 +4111,20 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
           __pyx_L20_try_end:;
         }
 
-        /* "BFTPSocket.pyx":198
+        /* "BFTPSocket.pyx":194
  *                     continue
  * 
  *                 if not chunk:# stream has disconnected             # <<<<<<<<<<<<<<
- *                 #if not packet:# stream has disconnected
  *                     try:
+ *                         self.isRxConnected=False
  */
-        __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_v_chunk); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 198, __pyx_L5_error)
+        __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_v_chunk); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 194, __pyx_L5_error)
         __pyx_t_5 = ((!__pyx_t_6) != 0);
         if (__pyx_t_5) {
 
-          /* "BFTPSocket.pyx":200
+          /* "BFTPSocket.pyx":195
+ * 
  *                 if not chunk:# stream has disconnected
- *                 #if not packet:# stream has disconnected
  *                     try:             # <<<<<<<<<<<<<<
  *                         self.isRxConnected=False
  *                         raise Exception ("socket lost")
@@ -4176,263 +4138,263 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
             __Pyx_XGOTREF(__pyx_t_10);
             /*try:*/ {
 
-              /* "BFTPSocket.pyx":201
- *                 #if not packet:# stream has disconnected
+              /* "BFTPSocket.pyx":196
+ *                 if not chunk:# stream has disconnected
  *                     try:
  *                         self.isRxConnected=False             # <<<<<<<<<<<<<<
  *                         raise Exception ("socket lost")
- *                     except Exception, e:
+ *                     except Exception as e:
  */
-              if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_isRxConnected, Py_False) < 0) __PYX_ERR(0, 201, __pyx_L50_error)
+              if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_isRxConnected, Py_False) < 0) __PYX_ERR(0, 196, __pyx_L51_error)
 
-              /* "BFTPSocket.pyx":202
+              /* "BFTPSocket.pyx":197
  *                     try:
  *                         self.isRxConnected=False
  *                         raise Exception ("socket lost")             # <<<<<<<<<<<<<<
- *                     except Exception, e:
+ *                     except Exception as e:
  *                         msg=" Receiver:No server connection -  %s, trying to reconnect every %d secs" %(e,reconnectTimeout)
  */
-              __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)(&((PyTypeObject*)PyExc_Exception)[0])), __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 202, __pyx_L50_error)
+              __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)(&((PyTypeObject*)PyExc_Exception)[0])), __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 197, __pyx_L51_error)
               __Pyx_GOTREF(__pyx_t_2);
               __Pyx_Raise(__pyx_t_2, 0, 0, 0);
               __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-              __PYX_ERR(0, 202, __pyx_L50_error)
+              __PYX_ERR(0, 197, __pyx_L51_error)
 
-              /* "BFTPSocket.pyx":200
+              /* "BFTPSocket.pyx":195
+ * 
  *                 if not chunk:# stream has disconnected
- *                 #if not packet:# stream has disconnected
  *                     try:             # <<<<<<<<<<<<<<
  *                         self.isRxConnected=False
  *                         raise Exception ("socket lost")
  */
             }
-            __pyx_L50_error:;
-            __Pyx_XDECREF(__pyx_t_21); __pyx_t_21 = 0;
+            __pyx_L51_error:;
             __Pyx_XDECREF(__pyx_t_20); __pyx_t_20 = 0;
+            __Pyx_XDECREF(__pyx_t_21); __pyx_t_21 = 0;
             __Pyx_XDECREF(__pyx_t_22); __pyx_t_22 = 0;
             __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
             __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
             __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-            /* "BFTPSocket.pyx":203
+            /* "BFTPSocket.pyx":198
  *                         self.isRxConnected=False
  *                         raise Exception ("socket lost")
- *                     except Exception, e:             # <<<<<<<<<<<<<<
+ *                     except Exception as e:             # <<<<<<<<<<<<<<
  *                         msg=" Receiver:No server connection -  %s, trying to reconnect every %d secs" %(e,reconnectTimeout)
  *                         print (msg)
  */
             __pyx_t_4 = __Pyx_PyErr_ExceptionMatches(((PyObject *)(&((PyTypeObject*)PyExc_Exception)[0])));
             if (__pyx_t_4) {
               __Pyx_AddTraceback("BFTPSocket.BFTPSocket.receive", __pyx_clineno, __pyx_lineno, __pyx_filename);
-              if (__Pyx_GetException(&__pyx_t_2, &__pyx_t_1, &__pyx_t_3) < 0) __PYX_ERR(0, 203, __pyx_L52_except_error)
+              if (__Pyx_GetException(&__pyx_t_2, &__pyx_t_1, &__pyx_t_3) < 0) __PYX_ERR(0, 198, __pyx_L53_except_error)
               __Pyx_GOTREF(__pyx_t_2);
               __Pyx_GOTREF(__pyx_t_1);
               __Pyx_GOTREF(__pyx_t_3);
               __Pyx_INCREF(__pyx_t_1);
               __Pyx_XDECREF_SET(__pyx_v_e, __pyx_t_1);
 
-              /* "BFTPSocket.pyx":204
+              /* "BFTPSocket.pyx":199
  *                         raise Exception ("socket lost")
- *                     except Exception, e:
+ *                     except Exception as e:
  *                         msg=" Receiver:No server connection -  %s, trying to reconnect every %d secs" %(e,reconnectTimeout)             # <<<<<<<<<<<<<<
  *                         print (msg)
  *                         self.AROWLogger.error(msg)
  */
-              __pyx_t_22 = __Pyx_PyInt_From_long(__pyx_v_reconnectTimeout); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 204, __pyx_L52_except_error)
+              __pyx_t_22 = __Pyx_PyInt_From_long(__pyx_v_reconnectTimeout); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 199, __pyx_L53_except_error)
               __Pyx_GOTREF(__pyx_t_22);
-              __pyx_t_20 = PyTuple_New(2); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 204, __pyx_L52_except_error)
-              __Pyx_GOTREF(__pyx_t_20);
+              __pyx_t_21 = PyTuple_New(2); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 199, __pyx_L53_except_error)
+              __Pyx_GOTREF(__pyx_t_21);
               __Pyx_INCREF(__pyx_v_e);
               __Pyx_GIVEREF(__pyx_v_e);
-              PyTuple_SET_ITEM(__pyx_t_20, 0, __pyx_v_e);
+              PyTuple_SET_ITEM(__pyx_t_21, 0, __pyx_v_e);
               __Pyx_GIVEREF(__pyx_t_22);
-              PyTuple_SET_ITEM(__pyx_t_20, 1, __pyx_t_22);
+              PyTuple_SET_ITEM(__pyx_t_21, 1, __pyx_t_22);
               __pyx_t_22 = 0;
-              __pyx_t_22 = __Pyx_PyString_Format(__pyx_kp_s_Receiver_No_server_connection_s_2, __pyx_t_20); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 204, __pyx_L52_except_error)
+              __pyx_t_22 = __Pyx_PyString_Format(__pyx_kp_s_Receiver_No_server_connection_s_2, __pyx_t_21); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 199, __pyx_L53_except_error)
               __Pyx_GOTREF(__pyx_t_22);
-              __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
+              __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
               __Pyx_XDECREF_SET(__pyx_v_msg, __pyx_t_22);
               __pyx_t_22 = 0;
 
-              /* "BFTPSocket.pyx":205
- *                     except Exception, e:
+              /* "BFTPSocket.pyx":200
+ *                     except Exception as e:
  *                         msg=" Receiver:No server connection -  %s, trying to reconnect every %d secs" %(e,reconnectTimeout)
  *                         print (msg)             # <<<<<<<<<<<<<<
  *                         self.AROWLogger.error(msg)
  *                         #Recv_Stop.set()
  */
-              if (__Pyx_PrintOne(0, __pyx_v_msg) < 0) __PYX_ERR(0, 205, __pyx_L52_except_error)
+              if (__Pyx_PrintOne(0, __pyx_v_msg) < 0) __PYX_ERR(0, 200, __pyx_L53_except_error)
 
-              /* "BFTPSocket.pyx":206
+              /* "BFTPSocket.pyx":201
  *                         msg=" Receiver:No server connection -  %s, trying to reconnect every %d secs" %(e,reconnectTimeout)
  *                         print (msg)
  *                         self.AROWLogger.error(msg)             # <<<<<<<<<<<<<<
  *                         #Recv_Stop.set()
  *                         self.isRxConnected= False
  */
-              __pyx_t_20 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_AROWLogger); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 206, __pyx_L52_except_error)
-              __Pyx_GOTREF(__pyx_t_20);
-              __pyx_t_21 = __Pyx_PyObject_GetAttrStr(__pyx_t_20, __pyx_n_s_error); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 206, __pyx_L52_except_error)
+              __pyx_t_21 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_AROWLogger); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 201, __pyx_L53_except_error)
               __Pyx_GOTREF(__pyx_t_21);
-              __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
-              __pyx_t_20 = NULL;
-              if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_21))) {
-                __pyx_t_20 = PyMethod_GET_SELF(__pyx_t_21);
-                if (likely(__pyx_t_20)) {
-                  PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_21);
-                  __Pyx_INCREF(__pyx_t_20);
+              __pyx_t_20 = __Pyx_PyObject_GetAttrStr(__pyx_t_21, __pyx_n_s_error); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 201, __pyx_L53_except_error)
+              __Pyx_GOTREF(__pyx_t_20);
+              __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
+              __pyx_t_21 = NULL;
+              if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_20))) {
+                __pyx_t_21 = PyMethod_GET_SELF(__pyx_t_20);
+                if (likely(__pyx_t_21)) {
+                  PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_20);
+                  __Pyx_INCREF(__pyx_t_21);
                   __Pyx_INCREF(function);
-                  __Pyx_DECREF_SET(__pyx_t_21, function);
+                  __Pyx_DECREF_SET(__pyx_t_20, function);
                 }
               }
-              __pyx_t_22 = (__pyx_t_20) ? __Pyx_PyObject_Call2Args(__pyx_t_21, __pyx_t_20, __pyx_v_msg) : __Pyx_PyObject_CallOneArg(__pyx_t_21, __pyx_v_msg);
-              __Pyx_XDECREF(__pyx_t_20); __pyx_t_20 = 0;
-              if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 206, __pyx_L52_except_error)
+              __pyx_t_22 = (__pyx_t_21) ? __Pyx_PyObject_Call2Args(__pyx_t_20, __pyx_t_21, __pyx_v_msg) : __Pyx_PyObject_CallOneArg(__pyx_t_20, __pyx_v_msg);
+              __Pyx_XDECREF(__pyx_t_21); __pyx_t_21 = 0;
+              if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 201, __pyx_L53_except_error)
               __Pyx_GOTREF(__pyx_t_22);
-              __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
+              __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
               __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
 
-              /* "BFTPSocket.pyx":208
+              /* "BFTPSocket.pyx":203
  *                         self.AROWLogger.error(msg)
  *                         #Recv_Stop.set()
  *                         self.isRxConnected= False             # <<<<<<<<<<<<<<
  *                         self.close()
  *                         time.sleep(reconnectTimeout)#secs
  */
-              if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_isRxConnected, Py_False) < 0) __PYX_ERR(0, 208, __pyx_L52_except_error)
+              if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_isRxConnected, Py_False) < 0) __PYX_ERR(0, 203, __pyx_L53_except_error)
 
-              /* "BFTPSocket.pyx":209
+              /* "BFTPSocket.pyx":204
  *                         #Recv_Stop.set()
  *                         self.isRxConnected= False
  *                         self.close()             # <<<<<<<<<<<<<<
  *                         time.sleep(reconnectTimeout)#secs
  *                         self.connect(self.host,self.port)
  */
-              __pyx_t_21 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_close); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 209, __pyx_L52_except_error)
-              __Pyx_GOTREF(__pyx_t_21);
-              __pyx_t_20 = NULL;
-              if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_21))) {
-                __pyx_t_20 = PyMethod_GET_SELF(__pyx_t_21);
-                if (likely(__pyx_t_20)) {
-                  PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_21);
-                  __Pyx_INCREF(__pyx_t_20);
+              __pyx_t_20 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_close); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 204, __pyx_L53_except_error)
+              __Pyx_GOTREF(__pyx_t_20);
+              __pyx_t_21 = NULL;
+              if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_20))) {
+                __pyx_t_21 = PyMethod_GET_SELF(__pyx_t_20);
+                if (likely(__pyx_t_21)) {
+                  PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_20);
+                  __Pyx_INCREF(__pyx_t_21);
                   __Pyx_INCREF(function);
-                  __Pyx_DECREF_SET(__pyx_t_21, function);
+                  __Pyx_DECREF_SET(__pyx_t_20, function);
                 }
               }
-              __pyx_t_22 = (__pyx_t_20) ? __Pyx_PyObject_CallOneArg(__pyx_t_21, __pyx_t_20) : __Pyx_PyObject_CallNoArg(__pyx_t_21);
-              __Pyx_XDECREF(__pyx_t_20); __pyx_t_20 = 0;
-              if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 209, __pyx_L52_except_error)
+              __pyx_t_22 = (__pyx_t_21) ? __Pyx_PyObject_CallOneArg(__pyx_t_20, __pyx_t_21) : __Pyx_PyObject_CallNoArg(__pyx_t_20);
+              __Pyx_XDECREF(__pyx_t_21); __pyx_t_21 = 0;
+              if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 204, __pyx_L53_except_error)
               __Pyx_GOTREF(__pyx_t_22);
-              __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
+              __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
               __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
 
-              /* "BFTPSocket.pyx":210
+              /* "BFTPSocket.pyx":205
  *                         self.isRxConnected= False
  *                         self.close()
  *                         time.sleep(reconnectTimeout)#secs             # <<<<<<<<<<<<<<
  *                         self.connect(self.host,self.port)
  * 
  */
-              __Pyx_GetModuleGlobalName(__pyx_t_21, __pyx_n_s_time); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 210, __pyx_L52_except_error)
-              __Pyx_GOTREF(__pyx_t_21);
-              __pyx_t_20 = __Pyx_PyObject_GetAttrStr(__pyx_t_21, __pyx_n_s_sleep); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 210, __pyx_L52_except_error)
+              __Pyx_GetModuleGlobalName(__pyx_t_20, __pyx_n_s_time); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 205, __pyx_L53_except_error)
               __Pyx_GOTREF(__pyx_t_20);
-              __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
-              __pyx_t_21 = __Pyx_PyInt_From_long(__pyx_v_reconnectTimeout); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 210, __pyx_L52_except_error)
+              __pyx_t_21 = __Pyx_PyObject_GetAttrStr(__pyx_t_20, __pyx_n_s_sleep); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 205, __pyx_L53_except_error)
               __Pyx_GOTREF(__pyx_t_21);
+              __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
+              __pyx_t_20 = __Pyx_PyInt_From_long(__pyx_v_reconnectTimeout); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 205, __pyx_L53_except_error)
+              __Pyx_GOTREF(__pyx_t_20);
               __pyx_t_23 = NULL;
-              if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_20))) {
-                __pyx_t_23 = PyMethod_GET_SELF(__pyx_t_20);
+              if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_21))) {
+                __pyx_t_23 = PyMethod_GET_SELF(__pyx_t_21);
                 if (likely(__pyx_t_23)) {
-                  PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_20);
+                  PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_21);
                   __Pyx_INCREF(__pyx_t_23);
                   __Pyx_INCREF(function);
-                  __Pyx_DECREF_SET(__pyx_t_20, function);
+                  __Pyx_DECREF_SET(__pyx_t_21, function);
                 }
               }
-              __pyx_t_22 = (__pyx_t_23) ? __Pyx_PyObject_Call2Args(__pyx_t_20, __pyx_t_23, __pyx_t_21) : __Pyx_PyObject_CallOneArg(__pyx_t_20, __pyx_t_21);
+              __pyx_t_22 = (__pyx_t_23) ? __Pyx_PyObject_Call2Args(__pyx_t_21, __pyx_t_23, __pyx_t_20) : __Pyx_PyObject_CallOneArg(__pyx_t_21, __pyx_t_20);
               __Pyx_XDECREF(__pyx_t_23); __pyx_t_23 = 0;
-              __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
-              if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 210, __pyx_L52_except_error)
-              __Pyx_GOTREF(__pyx_t_22);
               __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
+              if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 205, __pyx_L53_except_error)
+              __Pyx_GOTREF(__pyx_t_22);
+              __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
               __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
 
-              /* "BFTPSocket.pyx":211
+              /* "BFTPSocket.pyx":206
  *                         self.close()
  *                         time.sleep(reconnectTimeout)#secs
  *                         self.connect(self.host,self.port)             # <<<<<<<<<<<<<<
  * 
  *                 else:
  */
-              __pyx_t_20 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_connect); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 211, __pyx_L52_except_error)
-              __Pyx_GOTREF(__pyx_t_20);
-              __pyx_t_21 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_host); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 211, __pyx_L52_except_error)
+              __pyx_t_21 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_connect); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 206, __pyx_L53_except_error)
               __Pyx_GOTREF(__pyx_t_21);
-              __pyx_t_23 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_port); if (unlikely(!__pyx_t_23)) __PYX_ERR(0, 211, __pyx_L52_except_error)
+              __pyx_t_20 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_host); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 206, __pyx_L53_except_error)
+              __Pyx_GOTREF(__pyx_t_20);
+              __pyx_t_23 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_port); if (unlikely(!__pyx_t_23)) __PYX_ERR(0, 206, __pyx_L53_except_error)
               __Pyx_GOTREF(__pyx_t_23);
               __pyx_t_24 = NULL;
               __pyx_t_4 = 0;
-              if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_20))) {
-                __pyx_t_24 = PyMethod_GET_SELF(__pyx_t_20);
+              if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_21))) {
+                __pyx_t_24 = PyMethod_GET_SELF(__pyx_t_21);
                 if (likely(__pyx_t_24)) {
-                  PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_20);
+                  PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_21);
                   __Pyx_INCREF(__pyx_t_24);
                   __Pyx_INCREF(function);
-                  __Pyx_DECREF_SET(__pyx_t_20, function);
+                  __Pyx_DECREF_SET(__pyx_t_21, function);
                   __pyx_t_4 = 1;
                 }
               }
               #if CYTHON_FAST_PYCALL
-              if (PyFunction_Check(__pyx_t_20)) {
-                PyObject *__pyx_temp[3] = {__pyx_t_24, __pyx_t_21, __pyx_t_23};
-                __pyx_t_22 = __Pyx_PyFunction_FastCall(__pyx_t_20, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 211, __pyx_L52_except_error)
+              if (PyFunction_Check(__pyx_t_21)) {
+                PyObject *__pyx_temp[3] = {__pyx_t_24, __pyx_t_20, __pyx_t_23};
+                __pyx_t_22 = __Pyx_PyFunction_FastCall(__pyx_t_21, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 206, __pyx_L53_except_error)
                 __Pyx_XDECREF(__pyx_t_24); __pyx_t_24 = 0;
                 __Pyx_GOTREF(__pyx_t_22);
-                __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
+                __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
                 __Pyx_DECREF(__pyx_t_23); __pyx_t_23 = 0;
               } else
               #endif
               #if CYTHON_FAST_PYCCALL
-              if (__Pyx_PyFastCFunction_Check(__pyx_t_20)) {
-                PyObject *__pyx_temp[3] = {__pyx_t_24, __pyx_t_21, __pyx_t_23};
-                __pyx_t_22 = __Pyx_PyCFunction_FastCall(__pyx_t_20, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 211, __pyx_L52_except_error)
+              if (__Pyx_PyFastCFunction_Check(__pyx_t_21)) {
+                PyObject *__pyx_temp[3] = {__pyx_t_24, __pyx_t_20, __pyx_t_23};
+                __pyx_t_22 = __Pyx_PyCFunction_FastCall(__pyx_t_21, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 206, __pyx_L53_except_error)
                 __Pyx_XDECREF(__pyx_t_24); __pyx_t_24 = 0;
                 __Pyx_GOTREF(__pyx_t_22);
-                __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
+                __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
                 __Pyx_DECREF(__pyx_t_23); __pyx_t_23 = 0;
               } else
               #endif
               {
-                __pyx_t_25 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_25)) __PYX_ERR(0, 211, __pyx_L52_except_error)
+                __pyx_t_25 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_25)) __PYX_ERR(0, 206, __pyx_L53_except_error)
                 __Pyx_GOTREF(__pyx_t_25);
                 if (__pyx_t_24) {
                   __Pyx_GIVEREF(__pyx_t_24); PyTuple_SET_ITEM(__pyx_t_25, 0, __pyx_t_24); __pyx_t_24 = NULL;
                 }
-                __Pyx_GIVEREF(__pyx_t_21);
-                PyTuple_SET_ITEM(__pyx_t_25, 0+__pyx_t_4, __pyx_t_21);
+                __Pyx_GIVEREF(__pyx_t_20);
+                PyTuple_SET_ITEM(__pyx_t_25, 0+__pyx_t_4, __pyx_t_20);
                 __Pyx_GIVEREF(__pyx_t_23);
                 PyTuple_SET_ITEM(__pyx_t_25, 1+__pyx_t_4, __pyx_t_23);
-                __pyx_t_21 = 0;
+                __pyx_t_20 = 0;
                 __pyx_t_23 = 0;
-                __pyx_t_22 = __Pyx_PyObject_Call(__pyx_t_20, __pyx_t_25, NULL); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 211, __pyx_L52_except_error)
+                __pyx_t_22 = __Pyx_PyObject_Call(__pyx_t_21, __pyx_t_25, NULL); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 206, __pyx_L53_except_error)
                 __Pyx_GOTREF(__pyx_t_22);
                 __Pyx_DECREF(__pyx_t_25); __pyx_t_25 = 0;
               }
-              __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
+              __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
               __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
               __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
               __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
               __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-              goto __pyx_L51_exception_handled;
+              goto __pyx_L52_exception_handled;
             }
-            goto __pyx_L52_except_error;
-            __pyx_L52_except_error:;
+            goto __pyx_L53_except_error;
+            __pyx_L53_except_error:;
 
-            /* "BFTPSocket.pyx":200
+            /* "BFTPSocket.pyx":195
+ * 
  *                 if not chunk:# stream has disconnected
- *                 #if not packet:# stream has disconnected
  *                     try:             # <<<<<<<<<<<<<<
  *                         self.isRxConnected=False
  *                         raise Exception ("socket lost")
@@ -4442,24 +4404,24 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
             __Pyx_XGIVEREF(__pyx_t_10);
             __Pyx_ExceptionReset(__pyx_t_12, __pyx_t_11, __pyx_t_10);
             goto __pyx_L5_error;
-            __pyx_L51_exception_handled:;
+            __pyx_L52_exception_handled:;
             __Pyx_XGIVEREF(__pyx_t_12);
             __Pyx_XGIVEREF(__pyx_t_11);
             __Pyx_XGIVEREF(__pyx_t_10);
             __Pyx_ExceptionReset(__pyx_t_12, __pyx_t_11, __pyx_t_10);
           }
 
-          /* "BFTPSocket.pyx":198
+          /* "BFTPSocket.pyx":194
  *                     continue
  * 
  *                 if not chunk:# stream has disconnected             # <<<<<<<<<<<<<<
- *                 #if not packet:# stream has disconnected
  *                     try:
+ *                         self.isRxConnected=False
  */
-          goto __pyx_L49;
+          goto __pyx_L50;
         }
 
-        /* "BFTPSocket.pyx":214
+        /* "BFTPSocket.pyx":209
  * 
  *                 else:
  *                     try:             # <<<<<<<<<<<<<<
@@ -4476,41 +4438,41 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
             __Pyx_XGOTREF(__pyx_t_12);
             /*try:*/ {
 
-              /* "BFTPSocket.pyx":217
+              /* "BFTPSocket.pyx":212
  *                         #the queue is getting full so start processing
  * 
  *                         if len(self.RxQueue)>self.MAX_QUEUE_LEN/2:             # <<<<<<<<<<<<<<
  *                             self.decodeEvent.set()
  *                             #time.sleep(0.1) #secs # allow processing to take place - this is about the size of the arow buffer
  */
-              __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_RxQueue); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 217, __pyx_L60_error)
+              __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_RxQueue); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 212, __pyx_L61_error)
               __Pyx_GOTREF(__pyx_t_3);
-              __pyx_t_15 = PyObject_Length(__pyx_t_3); if (unlikely(__pyx_t_15 == ((Py_ssize_t)-1))) __PYX_ERR(0, 217, __pyx_L60_error)
+              __pyx_t_15 = PyObject_Length(__pyx_t_3); if (unlikely(__pyx_t_15 == ((Py_ssize_t)-1))) __PYX_ERR(0, 212, __pyx_L61_error)
               __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-              __pyx_t_3 = PyInt_FromSsize_t(__pyx_t_15); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 217, __pyx_L60_error)
+              __pyx_t_3 = PyInt_FromSsize_t(__pyx_t_15); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 212, __pyx_L61_error)
               __Pyx_GOTREF(__pyx_t_3);
-              __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_MAX_QUEUE_LEN); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 217, __pyx_L60_error)
+              __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_MAX_QUEUE_LEN); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 212, __pyx_L61_error)
               __Pyx_GOTREF(__pyx_t_1);
-              __pyx_t_2 = __Pyx_PyNumber_Divide(__pyx_t_1, __pyx_int_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 217, __pyx_L60_error)
+              __pyx_t_2 = __Pyx_PyNumber_Divide(__pyx_t_1, __pyx_int_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 212, __pyx_L61_error)
               __Pyx_GOTREF(__pyx_t_2);
               __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-              __pyx_t_1 = PyObject_RichCompare(__pyx_t_3, __pyx_t_2, Py_GT); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 217, __pyx_L60_error)
+              __pyx_t_1 = PyObject_RichCompare(__pyx_t_3, __pyx_t_2, Py_GT); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 212, __pyx_L61_error)
               __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
               __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-              __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 217, __pyx_L60_error)
+              __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 212, __pyx_L61_error)
               __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
               if (__pyx_t_5) {
 
-                /* "BFTPSocket.pyx":218
+                /* "BFTPSocket.pyx":213
  * 
  *                         if len(self.RxQueue)>self.MAX_QUEUE_LEN/2:
  *                             self.decodeEvent.set()             # <<<<<<<<<<<<<<
  *                             #time.sleep(0.1) #secs # allow processing to take place - this is about the size of the arow buffer
  *                         #elif len(RxQueue)<MAX_QUEUE_LEN/4:
  */
-                __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_decodeEvent); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 218, __pyx_L60_error)
+                __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_decodeEvent); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 213, __pyx_L61_error)
                 __Pyx_GOTREF(__pyx_t_2);
-                __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_set); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 218, __pyx_L60_error)
+                __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_set); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 213, __pyx_L61_error)
                 __Pyx_GOTREF(__pyx_t_3);
                 __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
                 __pyx_t_2 = NULL;
@@ -4525,12 +4487,12 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
                 }
                 __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2) : __Pyx_PyObject_CallNoArg(__pyx_t_3);
                 __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-                if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 218, __pyx_L60_error)
+                if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 213, __pyx_L61_error)
                 __Pyx_GOTREF(__pyx_t_1);
                 __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
                 __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-                /* "BFTPSocket.pyx":217
+                /* "BFTPSocket.pyx":212
  *                         #the queue is getting full so start processing
  * 
  *                         if len(self.RxQueue)>self.MAX_QUEUE_LEN/2:             # <<<<<<<<<<<<<<
@@ -4539,45 +4501,45 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
  */
               }
 
-              /* "BFTPSocket.pyx":222
+              /* "BFTPSocket.pyx":217
  *                         #elif len(RxQueue)<MAX_QUEUE_LEN/4:
  *                                 #decodeEvent.clear()
  *                         if len(self.RxQueue)>self.MAX_QUEUE_LEN:             # <<<<<<<<<<<<<<
  *                             self.AROWLogger.error("Queue Overrun %d, data lost",len(self.RxQueue) )
  *                             #something horrible has happened so reset
  */
-              __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_RxQueue); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 222, __pyx_L60_error)
+              __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_RxQueue); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 217, __pyx_L61_error)
               __Pyx_GOTREF(__pyx_t_1);
-              __pyx_t_15 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_15 == ((Py_ssize_t)-1))) __PYX_ERR(0, 222, __pyx_L60_error)
+              __pyx_t_15 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_15 == ((Py_ssize_t)-1))) __PYX_ERR(0, 217, __pyx_L61_error)
               __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-              __pyx_t_1 = PyInt_FromSsize_t(__pyx_t_15); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 222, __pyx_L60_error)
+              __pyx_t_1 = PyInt_FromSsize_t(__pyx_t_15); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 217, __pyx_L61_error)
               __Pyx_GOTREF(__pyx_t_1);
-              __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_MAX_QUEUE_LEN); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 222, __pyx_L60_error)
+              __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_MAX_QUEUE_LEN); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 217, __pyx_L61_error)
               __Pyx_GOTREF(__pyx_t_3);
-              __pyx_t_2 = PyObject_RichCompare(__pyx_t_1, __pyx_t_3, Py_GT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 222, __pyx_L60_error)
+              __pyx_t_2 = PyObject_RichCompare(__pyx_t_1, __pyx_t_3, Py_GT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 217, __pyx_L61_error)
               __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
               __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-              __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 222, __pyx_L60_error)
+              __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 217, __pyx_L61_error)
               __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
               if (__pyx_t_5) {
 
-                /* "BFTPSocket.pyx":223
+                /* "BFTPSocket.pyx":218
  *                                 #decodeEvent.clear()
  *                         if len(self.RxQueue)>self.MAX_QUEUE_LEN:
  *                             self.AROWLogger.error("Queue Overrun %d, data lost",len(self.RxQueue) )             # <<<<<<<<<<<<<<
  *                             #something horrible has happened so reset
  *                             print ("Queue overrun, data lost len %d",len(self.RxQueue))
  */
-                __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_AROWLogger); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 223, __pyx_L60_error)
+                __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_AROWLogger); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 218, __pyx_L61_error)
                 __Pyx_GOTREF(__pyx_t_3);
-                __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_error); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 223, __pyx_L60_error)
+                __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_error); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 218, __pyx_L61_error)
                 __Pyx_GOTREF(__pyx_t_1);
                 __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-                __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_RxQueue); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 223, __pyx_L60_error)
+                __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_RxQueue); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 218, __pyx_L61_error)
                 __Pyx_GOTREF(__pyx_t_3);
-                __pyx_t_15 = PyObject_Length(__pyx_t_3); if (unlikely(__pyx_t_15 == ((Py_ssize_t)-1))) __PYX_ERR(0, 223, __pyx_L60_error)
+                __pyx_t_15 = PyObject_Length(__pyx_t_3); if (unlikely(__pyx_t_15 == ((Py_ssize_t)-1))) __PYX_ERR(0, 218, __pyx_L61_error)
                 __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-                __pyx_t_3 = PyInt_FromSsize_t(__pyx_t_15); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 223, __pyx_L60_error)
+                __pyx_t_3 = PyInt_FromSsize_t(__pyx_t_15); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 218, __pyx_L61_error)
                 __Pyx_GOTREF(__pyx_t_3);
                 __pyx_t_22 = NULL;
                 __pyx_t_4 = 0;
@@ -4594,7 +4556,7 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
                 #if CYTHON_FAST_PYCALL
                 if (PyFunction_Check(__pyx_t_1)) {
                   PyObject *__pyx_temp[3] = {__pyx_t_22, __pyx_kp_s_Queue_Overrun_d_data_lost, __pyx_t_3};
-                  __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 223, __pyx_L60_error)
+                  __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 218, __pyx_L61_error)
                   __Pyx_XDECREF(__pyx_t_22); __pyx_t_22 = 0;
                   __Pyx_GOTREF(__pyx_t_2);
                   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -4603,45 +4565,45 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
                 #if CYTHON_FAST_PYCCALL
                 if (__Pyx_PyFastCFunction_Check(__pyx_t_1)) {
                   PyObject *__pyx_temp[3] = {__pyx_t_22, __pyx_kp_s_Queue_Overrun_d_data_lost, __pyx_t_3};
-                  __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 223, __pyx_L60_error)
+                  __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 218, __pyx_L61_error)
                   __Pyx_XDECREF(__pyx_t_22); __pyx_t_22 = 0;
                   __Pyx_GOTREF(__pyx_t_2);
                   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
                 } else
                 #endif
                 {
-                  __pyx_t_20 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 223, __pyx_L60_error)
-                  __Pyx_GOTREF(__pyx_t_20);
+                  __pyx_t_21 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 218, __pyx_L61_error)
+                  __Pyx_GOTREF(__pyx_t_21);
                   if (__pyx_t_22) {
-                    __Pyx_GIVEREF(__pyx_t_22); PyTuple_SET_ITEM(__pyx_t_20, 0, __pyx_t_22); __pyx_t_22 = NULL;
+                    __Pyx_GIVEREF(__pyx_t_22); PyTuple_SET_ITEM(__pyx_t_21, 0, __pyx_t_22); __pyx_t_22 = NULL;
                   }
                   __Pyx_INCREF(__pyx_kp_s_Queue_Overrun_d_data_lost);
                   __Pyx_GIVEREF(__pyx_kp_s_Queue_Overrun_d_data_lost);
-                  PyTuple_SET_ITEM(__pyx_t_20, 0+__pyx_t_4, __pyx_kp_s_Queue_Overrun_d_data_lost);
+                  PyTuple_SET_ITEM(__pyx_t_21, 0+__pyx_t_4, __pyx_kp_s_Queue_Overrun_d_data_lost);
                   __Pyx_GIVEREF(__pyx_t_3);
-                  PyTuple_SET_ITEM(__pyx_t_20, 1+__pyx_t_4, __pyx_t_3);
+                  PyTuple_SET_ITEM(__pyx_t_21, 1+__pyx_t_4, __pyx_t_3);
                   __pyx_t_3 = 0;
-                  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_20, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 223, __pyx_L60_error)
+                  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_21, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 218, __pyx_L61_error)
                   __Pyx_GOTREF(__pyx_t_2);
-                  __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
+                  __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
                 }
                 __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
                 __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-                /* "BFTPSocket.pyx":225
+                /* "BFTPSocket.pyx":220
  *                             self.AROWLogger.error("Queue Overrun %d, data lost",len(self.RxQueue) )
  *                             #something horrible has happened so reset
  *                             print ("Queue overrun, data lost len %d",len(self.RxQueue))             # <<<<<<<<<<<<<<
  *                             self.RxQueue.clear()
  *                             self.decodeEvent.clear()
  */
-                __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_RxQueue); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 225, __pyx_L60_error)
+                __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_RxQueue); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 220, __pyx_L61_error)
                 __Pyx_GOTREF(__pyx_t_2);
-                __pyx_t_15 = PyObject_Length(__pyx_t_2); if (unlikely(__pyx_t_15 == ((Py_ssize_t)-1))) __PYX_ERR(0, 225, __pyx_L60_error)
+                __pyx_t_15 = PyObject_Length(__pyx_t_2); if (unlikely(__pyx_t_15 == ((Py_ssize_t)-1))) __PYX_ERR(0, 220, __pyx_L61_error)
                 __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-                __pyx_t_2 = PyInt_FromSsize_t(__pyx_t_15); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 225, __pyx_L60_error)
+                __pyx_t_2 = PyInt_FromSsize_t(__pyx_t_15); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 220, __pyx_L61_error)
                 __Pyx_GOTREF(__pyx_t_2);
-                __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 225, __pyx_L60_error)
+                __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 220, __pyx_L61_error)
                 __Pyx_GOTREF(__pyx_t_1);
                 __Pyx_INCREF(__pyx_kp_s_Queue_overrun_data_lost_len_d);
                 __Pyx_GIVEREF(__pyx_kp_s_Queue_overrun_data_lost_len_d);
@@ -4649,78 +4611,78 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
                 __Pyx_GIVEREF(__pyx_t_2);
                 PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_t_2);
                 __pyx_t_2 = 0;
-                if (__Pyx_PrintOne(0, __pyx_t_1) < 0) __PYX_ERR(0, 225, __pyx_L60_error)
+                if (__Pyx_PrintOne(0, __pyx_t_1) < 0) __PYX_ERR(0, 220, __pyx_L61_error)
                 __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-                /* "BFTPSocket.pyx":226
+                /* "BFTPSocket.pyx":221
  *                             #something horrible has happened so reset
  *                             print ("Queue overrun, data lost len %d",len(self.RxQueue))
  *                             self.RxQueue.clear()             # <<<<<<<<<<<<<<
  *                             self.decodeEvent.clear()
  * 
  */
-                __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_RxQueue); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 226, __pyx_L60_error)
+                __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_RxQueue); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 221, __pyx_L61_error)
                 __Pyx_GOTREF(__pyx_t_2);
-                __pyx_t_20 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_clear); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 226, __pyx_L60_error)
-                __Pyx_GOTREF(__pyx_t_20);
+                __pyx_t_21 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_clear); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 221, __pyx_L61_error)
+                __Pyx_GOTREF(__pyx_t_21);
                 __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
                 __pyx_t_2 = NULL;
-                if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_20))) {
-                  __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_20);
+                if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_21))) {
+                  __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_21);
                   if (likely(__pyx_t_2)) {
-                    PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_20);
+                    PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_21);
                     __Pyx_INCREF(__pyx_t_2);
                     __Pyx_INCREF(function);
-                    __Pyx_DECREF_SET(__pyx_t_20, function);
+                    __Pyx_DECREF_SET(__pyx_t_21, function);
                   }
                 }
-                __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_CallOneArg(__pyx_t_20, __pyx_t_2) : __Pyx_PyObject_CallNoArg(__pyx_t_20);
+                __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_CallOneArg(__pyx_t_21, __pyx_t_2) : __Pyx_PyObject_CallNoArg(__pyx_t_21);
                 __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-                if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 226, __pyx_L60_error)
+                if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 221, __pyx_L61_error)
                 __Pyx_GOTREF(__pyx_t_1);
-                __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
+                __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
                 __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-                /* "BFTPSocket.pyx":227
+                /* "BFTPSocket.pyx":222
  *                             print ("Queue overrun, data lost len %d",len(self.RxQueue))
  *                             self.RxQueue.clear()
  *                             self.decodeEvent.clear()             # <<<<<<<<<<<<<<
  * 
  *                         else:
  */
-                __pyx_t_20 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_decodeEvent); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 227, __pyx_L60_error)
-                __Pyx_GOTREF(__pyx_t_20);
-                __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_20, __pyx_n_s_clear); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 227, __pyx_L60_error)
+                __pyx_t_21 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_decodeEvent); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 222, __pyx_L61_error)
+                __Pyx_GOTREF(__pyx_t_21);
+                __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_21, __pyx_n_s_clear); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 222, __pyx_L61_error)
                 __Pyx_GOTREF(__pyx_t_2);
-                __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
-                __pyx_t_20 = NULL;
+                __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
+                __pyx_t_21 = NULL;
                 if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
-                  __pyx_t_20 = PyMethod_GET_SELF(__pyx_t_2);
-                  if (likely(__pyx_t_20)) {
+                  __pyx_t_21 = PyMethod_GET_SELF(__pyx_t_2);
+                  if (likely(__pyx_t_21)) {
                     PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-                    __Pyx_INCREF(__pyx_t_20);
+                    __Pyx_INCREF(__pyx_t_21);
                     __Pyx_INCREF(function);
                     __Pyx_DECREF_SET(__pyx_t_2, function);
                   }
                 }
-                __pyx_t_1 = (__pyx_t_20) ? __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_20) : __Pyx_PyObject_CallNoArg(__pyx_t_2);
-                __Pyx_XDECREF(__pyx_t_20); __pyx_t_20 = 0;
-                if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 227, __pyx_L60_error)
+                __pyx_t_1 = (__pyx_t_21) ? __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_21) : __Pyx_PyObject_CallNoArg(__pyx_t_2);
+                __Pyx_XDECREF(__pyx_t_21); __pyx_t_21 = 0;
+                if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 222, __pyx_L61_error)
                 __Pyx_GOTREF(__pyx_t_1);
                 __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
                 __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-                /* "BFTPSocket.pyx":222
+                /* "BFTPSocket.pyx":217
  *                         #elif len(RxQueue)<MAX_QUEUE_LEN/4:
  *                                 #decodeEvent.clear()
  *                         if len(self.RxQueue)>self.MAX_QUEUE_LEN:             # <<<<<<<<<<<<<<
  *                             self.AROWLogger.error("Queue Overrun %d, data lost",len(self.RxQueue) )
  *                             #something horrible has happened so reset
  */
-                goto __pyx_L69;
+                goto __pyx_L70;
               }
 
-              /* "BFTPSocket.pyx":230
+              /* "BFTPSocket.pyx":225
  * 
  *                         else:
  *                             self.RxQueue.append((header,frame_data))             # <<<<<<<<<<<<<<
@@ -4728,9 +4690,9 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
  *                             #length returned is variable so dump to deque
  */
               /*else*/ {
-                __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_RxQueue); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 230, __pyx_L60_error)
+                __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_RxQueue); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 225, __pyx_L61_error)
                 __Pyx_GOTREF(__pyx_t_1);
-                __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 230, __pyx_L60_error)
+                __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 225, __pyx_L61_error)
                 __Pyx_GOTREF(__pyx_t_2);
                 __Pyx_INCREF(__pyx_v_header);
                 __Pyx_GIVEREF(__pyx_v_header);
@@ -4738,13 +4700,13 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
                 __Pyx_INCREF(__pyx_v_frame_data);
                 __Pyx_GIVEREF(__pyx_v_frame_data);
                 PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_v_frame_data);
-                __pyx_t_26 = __Pyx_PyObject_Append(__pyx_t_1, __pyx_t_2); if (unlikely(__pyx_t_26 == ((int)-1))) __PYX_ERR(0, 230, __pyx_L60_error)
+                __pyx_t_26 = __Pyx_PyObject_Append(__pyx_t_1, __pyx_t_2); if (unlikely(__pyx_t_26 == ((int)-1))) __PYX_ERR(0, 225, __pyx_L61_error)
                 __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
                 __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
               }
-              __pyx_L69:;
+              __pyx_L70:;
 
-              /* "BFTPSocket.pyx":214
+              /* "BFTPSocket.pyx":209
  * 
  *                 else:
  *                     try:             # <<<<<<<<<<<<<<
@@ -4755,43 +4717,43 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
             __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
             __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
             __Pyx_XDECREF(__pyx_t_12); __pyx_t_12 = 0;
-            goto __pyx_L67_try_end;
-            __pyx_L60_error:;
+            goto __pyx_L68_try_end;
+            __pyx_L61_error:;
             __Pyx_XDECREF(__pyx_t_24); __pyx_t_24 = 0;
-            __Pyx_XDECREF(__pyx_t_21); __pyx_t_21 = 0;
+            __Pyx_XDECREF(__pyx_t_20); __pyx_t_20 = 0;
             __Pyx_XDECREF(__pyx_t_23); __pyx_t_23 = 0;
             __Pyx_XDECREF(__pyx_t_25); __pyx_t_25 = 0;
             __Pyx_XDECREF(__pyx_t_22); __pyx_t_22 = 0;
             __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-            __Pyx_XDECREF(__pyx_t_20); __pyx_t_20 = 0;
+            __Pyx_XDECREF(__pyx_t_21); __pyx_t_21 = 0;
             __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
             __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-            /* "BFTPSocket.pyx":237
+            /* "BFTPSocket.pyx":232
  * 
  * 
  *                     except Exception:             # <<<<<<<<<<<<<<
  *                         msg = "Error in packet decoding: %s" % traceback.format_exc(1)
- *                         print msg
+ *                         print (msg)
  */
             __pyx_t_4 = __Pyx_PyErr_ExceptionMatches(((PyObject *)(&((PyTypeObject*)PyExc_Exception)[0])));
             if (__pyx_t_4) {
               __Pyx_AddTraceback("BFTPSocket.BFTPSocket.receive", __pyx_clineno, __pyx_lineno, __pyx_filename);
-              if (__Pyx_GetException(&__pyx_t_2, &__pyx_t_1, &__pyx_t_20) < 0) __PYX_ERR(0, 237, __pyx_L62_except_error)
+              if (__Pyx_GetException(&__pyx_t_2, &__pyx_t_1, &__pyx_t_21) < 0) __PYX_ERR(0, 232, __pyx_L63_except_error)
               __Pyx_GOTREF(__pyx_t_2);
               __Pyx_GOTREF(__pyx_t_1);
-              __Pyx_GOTREF(__pyx_t_20);
+              __Pyx_GOTREF(__pyx_t_21);
 
-              /* "BFTPSocket.pyx":238
+              /* "BFTPSocket.pyx":233
  * 
  *                     except Exception:
  *                         msg = "Error in packet decoding: %s" % traceback.format_exc(1)             # <<<<<<<<<<<<<<
- *                         print msg
+ *                         print (msg)
  *                         traceback.print_exc()
  */
-              __Pyx_GetModuleGlobalName(__pyx_t_22, __pyx_n_s_traceback); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 238, __pyx_L62_except_error)
+              __Pyx_GetModuleGlobalName(__pyx_t_22, __pyx_n_s_traceback); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 233, __pyx_L63_except_error)
               __Pyx_GOTREF(__pyx_t_22);
-              __pyx_t_25 = __Pyx_PyObject_GetAttrStr(__pyx_t_22, __pyx_n_s_format_exc); if (unlikely(!__pyx_t_25)) __PYX_ERR(0, 238, __pyx_L62_except_error)
+              __pyx_t_25 = __Pyx_PyObject_GetAttrStr(__pyx_t_22, __pyx_n_s_format_exc); if (unlikely(!__pyx_t_25)) __PYX_ERR(0, 233, __pyx_L63_except_error)
               __Pyx_GOTREF(__pyx_t_25);
               __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
               __pyx_t_22 = NULL;
@@ -4806,34 +4768,34 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
               }
               __pyx_t_3 = (__pyx_t_22) ? __Pyx_PyObject_Call2Args(__pyx_t_25, __pyx_t_22, __pyx_int_1) : __Pyx_PyObject_CallOneArg(__pyx_t_25, __pyx_int_1);
               __Pyx_XDECREF(__pyx_t_22); __pyx_t_22 = 0;
-              if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 238, __pyx_L62_except_error)
+              if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 233, __pyx_L63_except_error)
               __Pyx_GOTREF(__pyx_t_3);
               __Pyx_DECREF(__pyx_t_25); __pyx_t_25 = 0;
-              __pyx_t_25 = __Pyx_PyString_FormatSafe(__pyx_kp_s_Error_in_packet_decoding_s, __pyx_t_3); if (unlikely(!__pyx_t_25)) __PYX_ERR(0, 238, __pyx_L62_except_error)
+              __pyx_t_25 = __Pyx_PyString_FormatSafe(__pyx_kp_s_Error_in_packet_decoding_s, __pyx_t_3); if (unlikely(!__pyx_t_25)) __PYX_ERR(0, 233, __pyx_L63_except_error)
               __Pyx_GOTREF(__pyx_t_25);
               __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
               __Pyx_XDECREF_SET(__pyx_v_msg, __pyx_t_25);
               __pyx_t_25 = 0;
 
-              /* "BFTPSocket.pyx":239
+              /* "BFTPSocket.pyx":234
  *                     except Exception:
  *                         msg = "Error in packet decoding: %s" % traceback.format_exc(1)
- *                         print msg             # <<<<<<<<<<<<<<
+ *                         print (msg)             # <<<<<<<<<<<<<<
  *                         traceback.print_exc()
  *                         self.AROWLogger.error(msg)
  */
-              if (__Pyx_PrintOne(0, __pyx_v_msg) < 0) __PYX_ERR(0, 239, __pyx_L62_except_error)
+              if (__Pyx_PrintOne(0, __pyx_v_msg) < 0) __PYX_ERR(0, 234, __pyx_L63_except_error)
 
-              /* "BFTPSocket.pyx":240
+              /* "BFTPSocket.pyx":235
  *                         msg = "Error in packet decoding: %s" % traceback.format_exc(1)
- *                         print msg
+ *                         print (msg)
  *                         traceback.print_exc()             # <<<<<<<<<<<<<<
  *                         self.AROWLogger.error(msg)
  *             except KeyboardInterrupt:
  */
-              __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_traceback); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 240, __pyx_L62_except_error)
+              __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_traceback); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 235, __pyx_L63_except_error)
               __Pyx_GOTREF(__pyx_t_3);
-              __pyx_t_22 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_print_exc); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 240, __pyx_L62_except_error)
+              __pyx_t_22 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_print_exc); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 235, __pyx_L63_except_error)
               __Pyx_GOTREF(__pyx_t_22);
               __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
               __pyx_t_3 = NULL;
@@ -4848,21 +4810,21 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
               }
               __pyx_t_25 = (__pyx_t_3) ? __Pyx_PyObject_CallOneArg(__pyx_t_22, __pyx_t_3) : __Pyx_PyObject_CallNoArg(__pyx_t_22);
               __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-              if (unlikely(!__pyx_t_25)) __PYX_ERR(0, 240, __pyx_L62_except_error)
+              if (unlikely(!__pyx_t_25)) __PYX_ERR(0, 235, __pyx_L63_except_error)
               __Pyx_GOTREF(__pyx_t_25);
               __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
               __Pyx_DECREF(__pyx_t_25); __pyx_t_25 = 0;
 
-              /* "BFTPSocket.pyx":241
- *                         print msg
+              /* "BFTPSocket.pyx":236
+ *                         print (msg)
  *                         traceback.print_exc()
  *                         self.AROWLogger.error(msg)             # <<<<<<<<<<<<<<
  *             except KeyboardInterrupt:
  *                 #print "Goodbye"
  */
-              __pyx_t_22 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_AROWLogger); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 241, __pyx_L62_except_error)
+              __pyx_t_22 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_AROWLogger); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 236, __pyx_L63_except_error)
               __Pyx_GOTREF(__pyx_t_22);
-              __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_22, __pyx_n_s_error); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 241, __pyx_L62_except_error)
+              __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_22, __pyx_n_s_error); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 236, __pyx_L63_except_error)
               __Pyx_GOTREF(__pyx_t_3);
               __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
               __pyx_t_22 = NULL;
@@ -4877,19 +4839,19 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
               }
               __pyx_t_25 = (__pyx_t_22) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_22, __pyx_v_msg) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_msg);
               __Pyx_XDECREF(__pyx_t_22); __pyx_t_22 = 0;
-              if (unlikely(!__pyx_t_25)) __PYX_ERR(0, 241, __pyx_L62_except_error)
+              if (unlikely(!__pyx_t_25)) __PYX_ERR(0, 236, __pyx_L63_except_error)
               __Pyx_GOTREF(__pyx_t_25);
               __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
               __Pyx_DECREF(__pyx_t_25); __pyx_t_25 = 0;
               __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
               __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-              __Pyx_XDECREF(__pyx_t_20); __pyx_t_20 = 0;
-              goto __pyx_L61_exception_handled;
+              __Pyx_XDECREF(__pyx_t_21); __pyx_t_21 = 0;
+              goto __pyx_L62_exception_handled;
             }
-            goto __pyx_L62_except_error;
-            __pyx_L62_except_error:;
+            goto __pyx_L63_except_error;
+            __pyx_L63_except_error:;
 
-            /* "BFTPSocket.pyx":214
+            /* "BFTPSocket.pyx":209
  * 
  *                 else:
  *                     try:             # <<<<<<<<<<<<<<
@@ -4901,15 +4863,15 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
             __Pyx_XGIVEREF(__pyx_t_12);
             __Pyx_ExceptionReset(__pyx_t_10, __pyx_t_11, __pyx_t_12);
             goto __pyx_L5_error;
-            __pyx_L61_exception_handled:;
+            __pyx_L62_exception_handled:;
             __Pyx_XGIVEREF(__pyx_t_10);
             __Pyx_XGIVEREF(__pyx_t_11);
             __Pyx_XGIVEREF(__pyx_t_12);
             __Pyx_ExceptionReset(__pyx_t_10, __pyx_t_11, __pyx_t_12);
-            __pyx_L67_try_end:;
+            __pyx_L68_try_end:;
           }
         }
-        __pyx_L49:;
+        __pyx_L50:;
 
         /* "BFTPSocket.pyx":121
  *         index1=0
@@ -4925,16 +4887,16 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
       goto __pyx_L12_try_end;
       __pyx_L5_error:;
       __Pyx_XDECREF(__pyx_t_24); __pyx_t_24 = 0;
-      __Pyx_XDECREF(__pyx_t_21); __pyx_t_21 = 0;
+      __Pyx_XDECREF(__pyx_t_20); __pyx_t_20 = 0;
       __Pyx_XDECREF(__pyx_t_23); __pyx_t_23 = 0;
       __Pyx_XDECREF(__pyx_t_22); __pyx_t_22 = 0;
       __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_XDECREF(__pyx_t_25); __pyx_t_25 = 0;
       __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
       __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __Pyx_XDECREF(__pyx_t_20); __pyx_t_20 = 0;
+      __Pyx_XDECREF(__pyx_t_21); __pyx_t_21 = 0;
 
-      /* "BFTPSocket.pyx":242
+      /* "BFTPSocket.pyx":237
  *                         traceback.print_exc()
  *                         self.AROWLogger.error(msg)
  *             except KeyboardInterrupt:             # <<<<<<<<<<<<<<
@@ -4944,21 +4906,21 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
       __pyx_t_4 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_KeyboardInterrupt);
       if (__pyx_t_4) {
         __Pyx_AddTraceback("BFTPSocket.BFTPSocket.receive", __pyx_clineno, __pyx_lineno, __pyx_filename);
-        if (__Pyx_GetException(&__pyx_t_20, &__pyx_t_1, &__pyx_t_2) < 0) __PYX_ERR(0, 242, __pyx_L7_except_error)
-        __Pyx_GOTREF(__pyx_t_20);
+        if (__Pyx_GetException(&__pyx_t_21, &__pyx_t_1, &__pyx_t_2) < 0) __PYX_ERR(0, 237, __pyx_L7_except_error)
+        __Pyx_GOTREF(__pyx_t_21);
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_GOTREF(__pyx_t_2);
 
-        /* "BFTPSocket.pyx":244
+        /* "BFTPSocket.pyx":239
  *             except KeyboardInterrupt:
  *                 #print "Goodbye"
  *                 self.decodeEvent.clear()             # <<<<<<<<<<<<<<
  *                 break
  * 
  */
-        __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_decodeEvent); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 244, __pyx_L7_except_error)
+        __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_decodeEvent); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 239, __pyx_L7_except_error)
         __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_22 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_clear); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 244, __pyx_L7_except_error)
+        __pyx_t_22 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_clear); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 239, __pyx_L7_except_error)
         __Pyx_GOTREF(__pyx_t_22);
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         __pyx_t_3 = NULL;
@@ -4973,21 +4935,21 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
         }
         __pyx_t_25 = (__pyx_t_3) ? __Pyx_PyObject_CallOneArg(__pyx_t_22, __pyx_t_3) : __Pyx_PyObject_CallNoArg(__pyx_t_22);
         __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-        if (unlikely(!__pyx_t_25)) __PYX_ERR(0, 244, __pyx_L7_except_error)
+        if (unlikely(!__pyx_t_25)) __PYX_ERR(0, 239, __pyx_L7_except_error)
         __Pyx_GOTREF(__pyx_t_25);
         __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
         __Pyx_DECREF(__pyx_t_25); __pyx_t_25 = 0;
 
-        /* "BFTPSocket.pyx":245
+        /* "BFTPSocket.pyx":240
  *                 #print "Goodbye"
  *                 self.decodeEvent.clear()
  *                 break             # <<<<<<<<<<<<<<
  * 
  *     def close(self):
  */
-        goto __pyx_L72_except_break;
-        __pyx_L72_except_break:;
-        __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
+        goto __pyx_L73_except_break;
+        __pyx_L73_except_break:;
+        __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
         goto __pyx_L10_try_break;
@@ -5059,15 +5021,14 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_8receive(CYTHON_UNUSED PyObj
   __Pyx_XDECREF(__pyx_v_lenf);
   __Pyx_XDECREF(__pyx_v_index1);
   __Pyx_XDECREF(__pyx_v_intvltime);
-  __Pyx_XDECREF(__pyx_v_e);
-  __Pyx_XDECREF(__pyx_v_errcode);
   __Pyx_XDECREF(__pyx_v_msg);
+  __Pyx_XDECREF(__pyx_v_e);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "BFTPSocket.pyx":247
+/* "BFTPSocket.pyx":242
  *                 break
  * 
  *     def close(self):             # <<<<<<<<<<<<<<
@@ -5097,15 +5058,15 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_10close(CYTHON_UNUSED PyObje
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("close", 0);
 
-  /* "BFTPSocket.pyx":248
+  /* "BFTPSocket.pyx":243
  * 
  *     def close(self):
  *         self.sock.close()             # <<<<<<<<<<<<<<
  * #------------------------------------------------------------------------------
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_sock); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 248, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_sock); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 243, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_close); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 248, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_close); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 243, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -5120,12 +5081,12 @@ static PyObject *__pyx_pf_10BFTPSocket_10BFTPSocket_10close(CYTHON_UNUSED PyObje
   }
   __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2) : __Pyx_PyObject_CallNoArg(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 248, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 243, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "BFTPSocket.pyx":247
+  /* "BFTPSocket.pyx":242
  *                 break
  * 
  *     def close(self):             # <<<<<<<<<<<<<<
@@ -5194,21 +5155,24 @@ static struct PyModuleDef __pyx_moduledef = {
 #endif
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
+  {&__pyx_kp_b_, __pyx_k_, sizeof(__pyx_k_), 0, 0, 0, 0},
   {&__pyx_kp_s_, __pyx_k_, sizeof(__pyx_k_), 0, 0, 1, 0},
   {&__pyx_n_s_AF_INET, __pyx_k_AF_INET, sizeof(__pyx_k_AF_INET), 0, 0, 1, 1},
   {&__pyx_n_s_AROWLog, __pyx_k_AROWLog, sizeof(__pyx_k_AROWLog), 0, 0, 1, 1},
   {&__pyx_n_s_AROWLogger, __pyx_k_AROWLogger, sizeof(__pyx_k_AROWLogger), 0, 0, 1, 1},
+  {&__pyx_n_s_BBBBIIIQIIIIQIHH, __pyx_k_BBBBIIIQIIIIQIHH, sizeof(__pyx_k_BBBBIIIQIIIIQIHH), 0, 0, 1, 1},
   {&__pyx_n_s_BFTPSocket, __pyx_k_BFTPSocket, sizeof(__pyx_k_BFTPSocket), 0, 0, 1, 1},
   {&__pyx_kp_s_BFTPSocket_A_class_to_control_s, __pyx_k_BFTPSocket_A_class_to_control_s, sizeof(__pyx_k_BFTPSocket_A_class_to_control_s), 0, 0, 1, 0},
-  {&__pyx_n_s_BFTPSocket_Th_receive_TCP, __pyx_k_BFTPSocket_Th_receive_TCP, sizeof(__pyx_k_BFTPSocket_Th_receive_TCP), 0, 0, 1, 1},
   {&__pyx_n_s_BFTPSocket___init, __pyx_k_BFTPSocket___init, sizeof(__pyx_k_BFTPSocket___init), 0, 0, 1, 1},
   {&__pyx_n_s_BFTPSocket_close, __pyx_k_BFTPSocket_close, sizeof(__pyx_k_BFTPSocket_close), 0, 0, 1, 1},
   {&__pyx_n_s_BFTPSocket_connect, __pyx_k_BFTPSocket_connect, sizeof(__pyx_k_BFTPSocket_connect), 0, 0, 1, 1},
-  {&__pyx_n_s_BFTPSocket_getRxConnect, __pyx_k_BFTPSocket_getRxConnect, sizeof(__pyx_k_BFTPSocket_getRxConnect), 0, 0, 1, 1},
+  {&__pyx_n_s_BFTPSocket_get_rx_connect, __pyx_k_BFTPSocket_get_rx_connect, sizeof(__pyx_k_BFTPSocket_get_rx_connect), 0, 0, 1, 1},
   {&__pyx_kp_s_BFTPSocket_pyx, __pyx_k_BFTPSocket_pyx, sizeof(__pyx_k_BFTPSocket_pyx), 0, 0, 1, 0},
   {&__pyx_n_s_BFTPSocket_receive, __pyx_k_BFTPSocket_receive, sizeof(__pyx_k_BFTPSocket_receive), 0, 0, 1, 1},
-  {&__pyx_n_s_ECONNRESET, __pyx_k_ECONNRESET, sizeof(__pyx_k_ECONNRESET), 0, 0, 1, 1},
+  {&__pyx_n_s_BFTPSocket_th_receive_tcp, __pyx_k_BFTPSocket_th_receive_tcp, sizeof(__pyx_k_BFTPSocket_th_receive_tcp), 0, 0, 1, 1},
+  {&__pyx_n_s_ConnectionResetError, __pyx_k_ConnectionResetError, sizeof(__pyx_k_ConnectionResetError), 0, 0, 1, 1},
   {&__pyx_kp_s_Error_in_packet_decoding_s, __pyx_k_Error_in_packet_decoding_s, sizeof(__pyx_k_Error_in_packet_decoding_s), 0, 0, 1, 0},
+  {&__pyx_n_s_HEADER_FORMAT, __pyx_k_HEADER_FORMAT, sizeof(__pyx_k_HEADER_FORMAT), 0, 0, 1, 1},
   {&__pyx_n_s_HEADER_SIZE, __pyx_k_HEADER_SIZE, sizeof(__pyx_k_HEADER_SIZE), 0, 0, 1, 1},
   {&__pyx_n_s_KeyboardInterrupt, __pyx_k_KeyboardInterrupt, sizeof(__pyx_k_KeyboardInterrupt), 0, 0, 1, 1},
   {&__pyx_n_s_MARKER1, __pyx_k_MARKER1, sizeof(__pyx_k_MARKER1), 0, 0, 1, 1},
@@ -5232,14 +5196,15 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_SOL_TCP, __pyx_k_SOL_TCP, sizeof(__pyx_k_SOL_TCP), 0, 0, 1, 1},
   {&__pyx_n_s_SO_REUSEADDR, __pyx_k_SO_REUSEADDR, sizeof(__pyx_k_SO_REUSEADDR), 0, 0, 1, 1},
   {&__pyx_n_s_TCP_NODELAY, __pyx_k_TCP_NODELAY, sizeof(__pyx_k_TCP_NODELAY), 0, 0, 1, 1},
-  {&__pyx_n_s_Th_receive_TCP, __pyx_k_Th_receive_TCP, sizeof(__pyx_k_Th_receive_TCP), 0, 0, 1, 1},
   {&__pyx_n_s_Thread, __pyx_k_Thread, sizeof(__pyx_k_Thread), 0, 0, 1, 1},
+  {&__pyx_n_s_TimeoutError, __pyx_k_TimeoutError, sizeof(__pyx_k_TimeoutError), 0, 0, 1, 1},
   {&__pyx_kp_b__2, __pyx_k__2, sizeof(__pyx_k__2), 0, 0, 0, 0},
   {&__pyx_kp_s__3, __pyx_k__3, sizeof(__pyx_k__3), 0, 0, 1, 0},
   {&__pyx_n_s_add_inrate, __pyx_k_add_inrate, sizeof(__pyx_k_add_inrate), 0, 0, 1, 1},
   {&__pyx_n_s_append, __pyx_k_append, sizeof(__pyx_k_append), 0, 0, 1, 1},
   {&__pyx_n_s_args, __pyx_k_args, sizeof(__pyx_k_args), 0, 0, 1, 1},
   {&__pyx_n_s_buf, __pyx_k_buf, sizeof(__pyx_k_buf), 0, 0, 1, 1},
+  {&__pyx_n_s_calcsize, __pyx_k_calcsize, sizeof(__pyx_k_calcsize), 0, 0, 1, 1},
   {&__pyx_n_s_chunk, __pyx_k_chunk, sizeof(__pyx_k_chunk), 0, 0, 1, 1},
   {&__pyx_n_s_clear, __pyx_k_clear, sizeof(__pyx_k_clear), 0, 0, 1, 1},
   {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
@@ -5251,7 +5216,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_doc, __pyx_k_doc, sizeof(__pyx_k_doc), 0, 0, 1, 1},
   {&__pyx_n_s_e, __pyx_k_e, sizeof(__pyx_k_e), 0, 0, 1, 1},
   {&__pyx_n_s_end, __pyx_k_end, sizeof(__pyx_k_end), 0, 0, 1, 1},
-  {&__pyx_n_s_errcode, __pyx_k_errcode, sizeof(__pyx_k_errcode), 0, 0, 1, 1},
   {&__pyx_n_s_errno, __pyx_k_errno, sizeof(__pyx_k_errno), 0, 0, 1, 1},
   {&__pyx_n_s_error, __pyx_k_error, sizeof(__pyx_k_error), 0, 0, 1, 1},
   {&__pyx_n_s_extend, __pyx_k_extend, sizeof(__pyx_k_extend), 0, 0, 1, 1},
@@ -5261,9 +5225,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_frame_data, __pyx_k_frame_data, sizeof(__pyx_k_frame_data), 0, 0, 1, 1},
   {&__pyx_n_s_functools, __pyx_k_functools, sizeof(__pyx_k_functools), 0, 0, 1, 1},
   {&__pyx_n_s_getLogger, __pyx_k_getLogger, sizeof(__pyx_k_getLogger), 0, 0, 1, 1},
-  {&__pyx_n_s_getRxConnect, __pyx_k_getRxConnect, sizeof(__pyx_k_getRxConnect), 0, 0, 1, 1},
+  {&__pyx_n_s_get_rx_connect, __pyx_k_get_rx_connect, sizeof(__pyx_k_get_rx_connect), 0, 0, 1, 1},
   {&__pyx_n_s_get_setup, __pyx_k_get_setup, sizeof(__pyx_k_get_setup), 0, 0, 1, 1},
-  {&__pyx_n_s_globs, __pyx_k_globs, sizeof(__pyx_k_globs), 0, 0, 1, 1},
   {&__pyx_n_s_header, __pyx_k_header, sizeof(__pyx_k_header), 0, 0, 1, 1},
   {&__pyx_n_s_host, __pyx_k_host, sizeof(__pyx_k_host), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
@@ -5308,6 +5271,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_strttime, __pyx_k_strttime, sizeof(__pyx_k_strttime), 0, 0, 1, 1},
   {&__pyx_n_s_struct, __pyx_k_struct, sizeof(__pyx_k_struct), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
+  {&__pyx_n_s_th_receive_tcp, __pyx_k_th_receive_tcp, sizeof(__pyx_k_th_receive_tcp), 0, 0, 1, 1},
   {&__pyx_n_s_threading, __pyx_k_threading, sizeof(__pyx_k_threading), 0, 0, 1, 1},
   {&__pyx_n_s_time, __pyx_k_time, sizeof(__pyx_k_time), 0, 0, 1, 1},
   {&__pyx_n_s_timeout, __pyx_k_timeout, sizeof(__pyx_k_timeout), 0, 0, 1, 1},
@@ -5316,7 +5280,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_KeyboardInterrupt = __Pyx_GetBuiltinName(__pyx_n_s_KeyboardInterrupt); if (!__pyx_builtin_KeyboardInterrupt) __PYX_ERR(0, 176, __pyx_L1_error)
+  __pyx_builtin_KeyboardInterrupt = __Pyx_GetBuiltinName(__pyx_n_s_KeyboardInterrupt); if (!__pyx_builtin_KeyboardInterrupt) __PYX_ERR(0, 178, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
   return -1;
@@ -5326,19 +5290,19 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "BFTPSocket.pyx":202
+  /* "BFTPSocket.pyx":197
  *                     try:
  *                         self.isRxConnected=False
  *                         raise Exception ("socket lost")             # <<<<<<<<<<<<<<
- *                     except Exception, e:
+ *                     except Exception as e:
  *                         msg=" Receiver:No server connection -  %s, trying to reconnect every %d secs" %(e,reconnectTimeout)
  */
-  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_socket_lost); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 202, __pyx_L1_error)
+  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_socket_lost); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 197, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
 
   /* "BFTPSocket.pyx":35
- * 
+ *     """ BFTPSocket - A class to control socket access and data reception """
  * 
  *     def __init__ (self,RxQueue,decodeEvent,stats,sock=None):             # <<<<<<<<<<<<<<
  *         #if sock is None:
@@ -5355,14 +5319,14 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   /* "BFTPSocket.pyx":54
  * 
  * 
- *     def getRxConnect(self):             # <<<<<<<<<<<<<<
+ *     def get_rx_connect(self):             # <<<<<<<<<<<<<<
  *         return self.isRxConnected
  * 
  */
   __pyx_tuple__8 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 54, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__8);
   __Pyx_GIVEREF(__pyx_tuple__8);
-  __pyx_codeobj__9 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__8, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_BFTPSocket_pyx, __pyx_n_s_getRxConnect, 54, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__9)) __PYX_ERR(0, 54, __pyx_L1_error)
+  __pyx_codeobj__9 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__8, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_BFTPSocket_pyx, __pyx_n_s_get_rx_connect, 54, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__9)) __PYX_ERR(0, 54, __pyx_L1_error)
 
   /* "BFTPSocket.pyx":57
  *         return self.isRxConnected
@@ -5379,14 +5343,14 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   /* "BFTPSocket.pyx":82
  *             return(-1)
  * 
- *     def Th_receive_TCP(self,directory,Recv_Stop):             # <<<<<<<<<<<<<<
+ *     def th_receive_tcp(self,directory,Recv_Stop):             # <<<<<<<<<<<<<<
  *         """ thread to decode TCP packets """
  * 
  */
   __pyx_tuple__12 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_directory, __pyx_n_s_Recv_Stop, __pyx_n_s_ReceiveTCP); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__12);
   __Pyx_GIVEREF(__pyx_tuple__12);
-  __pyx_codeobj__13 = (PyObject*)__Pyx_PyCode_New(3, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__12, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_BFTPSocket_pyx, __pyx_n_s_Th_receive_TCP, 82, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__13)) __PYX_ERR(0, 82, __pyx_L1_error)
+  __pyx_codeobj__13 = (PyObject*)__Pyx_PyCode_New(3, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__12, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_BFTPSocket_pyx, __pyx_n_s_th_receive_tcp, 82, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__13)) __PYX_ERR(0, 82, __pyx_L1_error)
 
   /* "BFTPSocket.pyx":94
  * 
@@ -5395,22 +5359,22 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *         """For UDP/TCPIP receiver BFTP frames containing files, and storing
  *         received files into the directory passed from the startup parameter."""
  */
-  __pyx_tuple__14 = PyTuple_Pack(19, __pyx_n_s_self, __pyx_n_s_Recv_Stop, __pyx_n_s_options, __pyx_n_s_strttime, __pyx_n_s_statlen, __pyx_n_s_period, __pyx_n_s_toread, __pyx_n_s_frame_data, __pyx_n_s_header, __pyx_n_s_isSync, __pyx_n_s_buf, __pyx_n_s_reconnectTimeout, __pyx_n_s_chunk, __pyx_n_s_lenf, __pyx_n_s_index1, __pyx_n_s_intvltime, __pyx_n_s_e, __pyx_n_s_errcode, __pyx_n_s_msg); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(0, 94, __pyx_L1_error)
+  __pyx_tuple__14 = PyTuple_Pack(18, __pyx_n_s_self, __pyx_n_s_Recv_Stop, __pyx_n_s_options, __pyx_n_s_strttime, __pyx_n_s_statlen, __pyx_n_s_period, __pyx_n_s_toread, __pyx_n_s_frame_data, __pyx_n_s_header, __pyx_n_s_isSync, __pyx_n_s_buf, __pyx_n_s_reconnectTimeout, __pyx_n_s_chunk, __pyx_n_s_lenf, __pyx_n_s_index1, __pyx_n_s_intvltime, __pyx_n_s_msg, __pyx_n_s_e); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(0, 94, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__14);
   __Pyx_GIVEREF(__pyx_tuple__14);
-  __pyx_codeobj__15 = (PyObject*)__Pyx_PyCode_New(2, 0, 19, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__14, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_BFTPSocket_pyx, __pyx_n_s_receive, 94, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__15)) __PYX_ERR(0, 94, __pyx_L1_error)
+  __pyx_codeobj__15 = (PyObject*)__Pyx_PyCode_New(2, 0, 18, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__14, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_BFTPSocket_pyx, __pyx_n_s_receive, 94, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__15)) __PYX_ERR(0, 94, __pyx_L1_error)
 
-  /* "BFTPSocket.pyx":247
+  /* "BFTPSocket.pyx":242
  *                 break
  * 
  *     def close(self):             # <<<<<<<<<<<<<<
  *         self.sock.close()
  * #------------------------------------------------------------------------------
  */
-  __pyx_tuple__16 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__16)) __PYX_ERR(0, 247, __pyx_L1_error)
+  __pyx_tuple__16 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__16)) __PYX_ERR(0, 242, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__16);
   __Pyx_GIVEREF(__pyx_tuple__16);
-  __pyx_codeobj__17 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__16, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_BFTPSocket_pyx, __pyx_n_s_close, 247, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__17)) __PYX_ERR(0, 247, __pyx_L1_error)
+  __pyx_codeobj__17 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__16, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_BFTPSocket_pyx, __pyx_n_s_close, 242, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__17)) __PYX_ERR(0, 242, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -5593,6 +5557,7 @@ static CYTHON_SMALL_CODE int __pyx_pymod_exec_BFTPSocket(PyObject *__pyx_pyinit_
 {
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannyDeclarations
   #if CYTHON_PEP489_MULTI_PHASE_INIT
   if (__pyx_m) {
@@ -5703,7 +5668,7 @@ if (!__Pyx_RefNanny) {
  * '''
  * import  socket, time,struct,   logging, traceback             # <<<<<<<<<<<<<<
  * import threading
- * import globs
+ * #import globs
  */
   __pyx_t_1 = __Pyx_Import(__pyx_n_s_socket, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 6, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -5730,7 +5695,7 @@ if (!__Pyx_RefNanny) {
  * '''
  * import  socket, time,struct,   logging, traceback
  * import threading             # <<<<<<<<<<<<<<
- * import globs
+ * #import globs
  * from functools import partial
  */
   __pyx_t_1 = __Pyx_Import(__pyx_n_s_threading, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 7, __pyx_L1_error)
@@ -5738,21 +5703,9 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_threading, __pyx_t_1) < 0) __PYX_ERR(0, 7, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "BFTPSocket.pyx":8
- * import  socket, time,struct,   logging, traceback
- * import threading
- * import globs             # <<<<<<<<<<<<<<
- * from functools import partial
- * import errno
- */
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_globs, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 8, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_globs, __pyx_t_1) < 0) __PYX_ERR(0, 8, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
   /* "BFTPSocket.pyx":9
  * import threading
- * import globs
+ * #import globs
  * from functools import partial             # <<<<<<<<<<<<<<
  * import errno
  * """A note on buffer/queue sizing.
@@ -5772,7 +5725,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "BFTPSocket.pyx":10
- * import globs
+ * #import globs
  * from functools import partial
  * import errno             # <<<<<<<<<<<<<<
  * """A note on buffer/queue sizing.
@@ -5783,40 +5736,70 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_errno, __pyx_t_2) < 0) __PYX_ERR(0, 10, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "BFTPSocket.pyx":31
+  /* "BFTPSocket.pyx":26
+ *  to control the sending data rate.   """
+ * 
+ * HEADER_FORMAT = "BBBBIIIQIIIIQIHH"             # <<<<<<<<<<<<<<
+ * HEADER_SIZE = struct.calcsize(HEADER_FORMAT)
+ * 
+ */
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_HEADER_FORMAT, __pyx_n_s_BBBBIIIQIIIIQIHH) < 0) __PYX_ERR(0, 26, __pyx_L1_error)
+
+  /* "BFTPSocket.pyx":27
+ * 
+ * HEADER_FORMAT = "BBBBIIIQIIIIQIHH"
+ * HEADER_SIZE = struct.calcsize(HEADER_FORMAT)             # <<<<<<<<<<<<<<
+ * 
+ * #..............................................................................................
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_struct); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 27, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_calcsize); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 27, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_HEADER_FORMAT); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 27, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 27, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_HEADER_SIZE, __pyx_t_3) < 0) __PYX_ERR(0, 27, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "BFTPSocket.pyx":32
  * #AROWSocket class
  * #............................................................................
  * class BFTPSocket:             # <<<<<<<<<<<<<<
  *     """ BFTPSocket - A class to control socket access and data reception """
  * 
  */
-  __pyx_t_2 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_BFTPSocket, __pyx_n_s_BFTPSocket, (PyObject *) NULL, __pyx_n_s_BFTPSocket, __pyx_kp_s_BFTPSocket_A_class_to_control_s); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 31, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_BFTPSocket, __pyx_n_s_BFTPSocket, (PyObject *) NULL, __pyx_n_s_BFTPSocket, __pyx_kp_s_BFTPSocket_A_class_to_control_s); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 32, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
 
   /* "BFTPSocket.pyx":35
- * 
+ *     """ BFTPSocket - A class to control socket access and data reception """
  * 
  *     def __init__ (self,RxQueue,decodeEvent,stats,sock=None):             # <<<<<<<<<<<<<<
  *         #if sock is None:
  *             #self.sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_10BFTPSocket_10BFTPSocket_1__init__, 0, __pyx_n_s_BFTPSocket___init, NULL, __pyx_n_s_BFTPSocket, __pyx_d, ((PyObject *)__pyx_codeobj__6)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 35, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_1, __pyx_tuple__7);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_init, __pyx_t_1) < 0) __PYX_ERR(0, 35, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_10BFTPSocket_10BFTPSocket_1__init__, 0, __pyx_n_s_BFTPSocket___init, NULL, __pyx_n_s_BFTPSocket, __pyx_d, ((PyObject *)__pyx_codeobj__6)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 35, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_tuple__7);
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_init, __pyx_t_2) < 0) __PYX_ERR(0, 35, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "BFTPSocket.pyx":54
  * 
  * 
- *     def getRxConnect(self):             # <<<<<<<<<<<<<<
+ *     def get_rx_connect(self):             # <<<<<<<<<<<<<<
  *         return self.isRxConnected
  * 
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_10BFTPSocket_10BFTPSocket_3getRxConnect, 0, __pyx_n_s_BFTPSocket_getRxConnect, NULL, __pyx_n_s_BFTPSocket, __pyx_d, ((PyObject *)__pyx_codeobj__9)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 54, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_getRxConnect, __pyx_t_1) < 0) __PYX_ERR(0, 54, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_10BFTPSocket_10BFTPSocket_3get_rx_connect, 0, __pyx_n_s_BFTPSocket_get_rx_connect, NULL, __pyx_n_s_BFTPSocket, __pyx_d, ((PyObject *)__pyx_codeobj__9)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 54, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_get_rx_connect, __pyx_t_2) < 0) __PYX_ERR(0, 54, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "BFTPSocket.pyx":57
  *         return self.isRxConnected
@@ -5825,22 +5808,22 @@ if (!__Pyx_RefNanny) {
  *         self.host=host
  *         self.port=port
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_10BFTPSocket_10BFTPSocket_5connect, 0, __pyx_n_s_BFTPSocket_connect, NULL, __pyx_n_s_BFTPSocket, __pyx_d, ((PyObject *)__pyx_codeobj__11)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 57, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_connect, __pyx_t_1) < 0) __PYX_ERR(0, 57, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_10BFTPSocket_10BFTPSocket_5connect, 0, __pyx_n_s_BFTPSocket_connect, NULL, __pyx_n_s_BFTPSocket, __pyx_d, ((PyObject *)__pyx_codeobj__11)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_connect, __pyx_t_2) < 0) __PYX_ERR(0, 57, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "BFTPSocket.pyx":82
  *             return(-1)
  * 
- *     def Th_receive_TCP(self,directory,Recv_Stop):             # <<<<<<<<<<<<<<
+ *     def th_receive_tcp(self,directory,Recv_Stop):             # <<<<<<<<<<<<<<
  *         """ thread to decode TCP packets """
  * 
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_10BFTPSocket_10BFTPSocket_7Th_receive_TCP, 0, __pyx_n_s_BFTPSocket_Th_receive_TCP, NULL, __pyx_n_s_BFTPSocket, __pyx_d, ((PyObject *)__pyx_codeobj__13)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 82, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_Th_receive_TCP, __pyx_t_1) < 0) __PYX_ERR(0, 82, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_10BFTPSocket_10BFTPSocket_7th_receive_tcp, 0, __pyx_n_s_BFTPSocket_th_receive_tcp, NULL, __pyx_n_s_BFTPSocket, __pyx_d, ((PyObject *)__pyx_codeobj__13)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 82, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_th_receive_tcp, __pyx_t_2) < 0) __PYX_ERR(0, 82, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "BFTPSocket.pyx":94
  * 
@@ -5849,45 +5832,45 @@ if (!__Pyx_RefNanny) {
  *         """For UDP/TCPIP receiver BFTP frames containing files, and storing
  *         received files into the directory passed from the startup parameter."""
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_10BFTPSocket_10BFTPSocket_9receive, 0, __pyx_n_s_BFTPSocket_receive, NULL, __pyx_n_s_BFTPSocket, __pyx_d, ((PyObject *)__pyx_codeobj__15)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 94, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_receive, __pyx_t_1) < 0) __PYX_ERR(0, 94, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_10BFTPSocket_10BFTPSocket_9receive, 0, __pyx_n_s_BFTPSocket_receive, NULL, __pyx_n_s_BFTPSocket, __pyx_d, ((PyObject *)__pyx_codeobj__15)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 94, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_receive, __pyx_t_2) < 0) __PYX_ERR(0, 94, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "BFTPSocket.pyx":247
+  /* "BFTPSocket.pyx":242
  *                 break
  * 
  *     def close(self):             # <<<<<<<<<<<<<<
  *         self.sock.close()
  * #------------------------------------------------------------------------------
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_10BFTPSocket_10BFTPSocket_11close, 0, __pyx_n_s_BFTPSocket_close, NULL, __pyx_n_s_BFTPSocket, __pyx_d, ((PyObject *)__pyx_codeobj__17)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 247, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_close, __pyx_t_1) < 0) __PYX_ERR(0, 247, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_10BFTPSocket_10BFTPSocket_11close, 0, __pyx_n_s_BFTPSocket_close, NULL, __pyx_n_s_BFTPSocket, __pyx_d, ((PyObject *)__pyx_codeobj__17)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 242, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_close, __pyx_t_2) < 0) __PYX_ERR(0, 242, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "BFTPSocket.pyx":31
+  /* "BFTPSocket.pyx":32
  * #AROWSocket class
  * #............................................................................
  * class BFTPSocket:             # <<<<<<<<<<<<<<
  *     """ BFTPSocket - A class to control socket access and data reception """
  * 
  */
-  __pyx_t_1 = __Pyx_Py3ClassCreate(((PyObject*)&__Pyx_DefaultClassType), __pyx_n_s_BFTPSocket, __pyx_empty_tuple, __pyx_t_2, NULL, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 31, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_BFTPSocket, __pyx_t_1) < 0) __PYX_ERR(0, 31, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_2 = __Pyx_Py3ClassCreate(((PyObject*)&__Pyx_DefaultClassType), __pyx_n_s_BFTPSocket, __pyx_empty_tuple, __pyx_t_3, NULL, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 32, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_BFTPSocket, __pyx_t_2) < 0) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "BFTPSocket.pyx":1
  * '''             # <<<<<<<<<<<<<<
  * Created on 21 Apr 2015
  * A Cython module to handle AROWReceive socket requests,and stream synchronisation
  */
-  __pyx_t_2 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_test, __pyx_t_2) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_test, __pyx_t_3) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /*--- Wrapped vars code ---*/
 
@@ -5895,6 +5878,7 @@ if (!__Pyx_RefNanny) {
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
   if (__pyx_m) {
     if (__pyx_d) {
       __Pyx_AddTraceback("init BFTPSocket", __pyx_clineno, __pyx_lineno, __pyx_filename);
@@ -6881,108 +6865,6 @@ static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int eq
 #endif
 }
 
-/* UnicodeEquals */
-static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals) {
-#if CYTHON_COMPILING_IN_PYPY
-    return PyObject_RichCompareBool(s1, s2, equals);
-#else
-#if PY_MAJOR_VERSION < 3
-    PyObject* owned_ref = NULL;
-#endif
-    int s1_is_unicode, s2_is_unicode;
-    if (s1 == s2) {
-        goto return_eq;
-    }
-    s1_is_unicode = PyUnicode_CheckExact(s1);
-    s2_is_unicode = PyUnicode_CheckExact(s2);
-#if PY_MAJOR_VERSION < 3
-    if ((s1_is_unicode & (!s2_is_unicode)) && PyString_CheckExact(s2)) {
-        owned_ref = PyUnicode_FromObject(s2);
-        if (unlikely(!owned_ref))
-            return -1;
-        s2 = owned_ref;
-        s2_is_unicode = 1;
-    } else if ((s2_is_unicode & (!s1_is_unicode)) && PyString_CheckExact(s1)) {
-        owned_ref = PyUnicode_FromObject(s1);
-        if (unlikely(!owned_ref))
-            return -1;
-        s1 = owned_ref;
-        s1_is_unicode = 1;
-    } else if (((!s2_is_unicode) & (!s1_is_unicode))) {
-        return __Pyx_PyBytes_Equals(s1, s2, equals);
-    }
-#endif
-    if (s1_is_unicode & s2_is_unicode) {
-        Py_ssize_t length;
-        int kind;
-        void *data1, *data2;
-        if (unlikely(__Pyx_PyUnicode_READY(s1) < 0) || unlikely(__Pyx_PyUnicode_READY(s2) < 0))
-            return -1;
-        length = __Pyx_PyUnicode_GET_LENGTH(s1);
-        if (length != __Pyx_PyUnicode_GET_LENGTH(s2)) {
-            goto return_ne;
-        }
-#if CYTHON_USE_UNICODE_INTERNALS
-        {
-            Py_hash_t hash1, hash2;
-        #if CYTHON_PEP393_ENABLED
-            hash1 = ((PyASCIIObject*)s1)->hash;
-            hash2 = ((PyASCIIObject*)s2)->hash;
-        #else
-            hash1 = ((PyUnicodeObject*)s1)->hash;
-            hash2 = ((PyUnicodeObject*)s2)->hash;
-        #endif
-            if (hash1 != hash2 && hash1 != -1 && hash2 != -1) {
-                goto return_ne;
-            }
-        }
-#endif
-        kind = __Pyx_PyUnicode_KIND(s1);
-        if (kind != __Pyx_PyUnicode_KIND(s2)) {
-            goto return_ne;
-        }
-        data1 = __Pyx_PyUnicode_DATA(s1);
-        data2 = __Pyx_PyUnicode_DATA(s2);
-        if (__Pyx_PyUnicode_READ(kind, data1, 0) != __Pyx_PyUnicode_READ(kind, data2, 0)) {
-            goto return_ne;
-        } else if (length == 1) {
-            goto return_eq;
-        } else {
-            int result = memcmp(data1, data2, (size_t)(length * kind));
-            #if PY_MAJOR_VERSION < 3
-            Py_XDECREF(owned_ref);
-            #endif
-            return (equals == Py_EQ) ? (result == 0) : (result != 0);
-        }
-    } else if ((s1 == Py_None) & s2_is_unicode) {
-        goto return_ne;
-    } else if ((s2 == Py_None) & s1_is_unicode) {
-        goto return_ne;
-    } else {
-        int result;
-        PyObject* py_result = PyObject_RichCompare(s1, s2, equals);
-        #if PY_MAJOR_VERSION < 3
-        Py_XDECREF(owned_ref);
-        #endif
-        if (!py_result)
-            return -1;
-        result = __Pyx_PyObject_IsTrue(py_result);
-        Py_DECREF(py_result);
-        return result;
-    }
-return_eq:
-    #if PY_MAJOR_VERSION < 3
-    Py_XDECREF(owned_ref);
-    #endif
-    return (equals == Py_EQ);
-return_ne:
-    #if PY_MAJOR_VERSION < 3
-    Py_XDECREF(owned_ref);
-    #endif
-    return (equals == Py_NE);
-#endif
-}
-
 /* PyErrFetchRestore */
 #if CYTHON_FAST_THREAD_STATE
 static CYTHON_INLINE void __Pyx_ErrRestoreInState(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb) {
@@ -7106,93 +6988,6 @@ static CYTHON_INLINE int __Pyx_PyErr_GivenExceptionMatches2(PyObject *err, PyObj
     return (PyErr_GivenExceptionMatches(err, exc_type1) || PyErr_GivenExceptionMatches(err, exc_type2));
 }
 #endif
-
-/* GetItemInt */
-static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j) {
-    PyObject *r;
-    if (!j) return NULL;
-    r = PyObject_GetItem(o, j);
-    Py_DECREF(j);
-    return r;
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
-                                                              CYTHON_NCP_UNUSED int wraparound,
-                                                              CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    Py_ssize_t wrapped_i = i;
-    if (wraparound & unlikely(i < 0)) {
-        wrapped_i += PyList_GET_SIZE(o);
-    }
-    if ((!boundscheck) || likely(__Pyx_is_valid_index(wrapped_i, PyList_GET_SIZE(o)))) {
-        PyObject *r = PyList_GET_ITEM(o, wrapped_i);
-        Py_INCREF(r);
-        return r;
-    }
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-#else
-    return PySequence_GetItem(o, i);
-#endif
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
-                                                              CYTHON_NCP_UNUSED int wraparound,
-                                                              CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    Py_ssize_t wrapped_i = i;
-    if (wraparound & unlikely(i < 0)) {
-        wrapped_i += PyTuple_GET_SIZE(o);
-    }
-    if ((!boundscheck) || likely(__Pyx_is_valid_index(wrapped_i, PyTuple_GET_SIZE(o)))) {
-        PyObject *r = PyTuple_GET_ITEM(o, wrapped_i);
-        Py_INCREF(r);
-        return r;
-    }
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-#else
-    return PySequence_GetItem(o, i);
-#endif
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, int is_list,
-                                                     CYTHON_NCP_UNUSED int wraparound,
-                                                     CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS && CYTHON_USE_TYPE_SLOTS
-    if (is_list || PyList_CheckExact(o)) {
-        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyList_GET_SIZE(o);
-        if ((!boundscheck) || (likely(__Pyx_is_valid_index(n, PyList_GET_SIZE(o))))) {
-            PyObject *r = PyList_GET_ITEM(o, n);
-            Py_INCREF(r);
-            return r;
-        }
-    }
-    else if (PyTuple_CheckExact(o)) {
-        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyTuple_GET_SIZE(o);
-        if ((!boundscheck) || likely(__Pyx_is_valid_index(n, PyTuple_GET_SIZE(o)))) {
-            PyObject *r = PyTuple_GET_ITEM(o, n);
-            Py_INCREF(r);
-            return r;
-        }
-    } else {
-        PySequenceMethods *m = Py_TYPE(o)->tp_as_sequence;
-        if (likely(m && m->sq_item)) {
-            if (wraparound && unlikely(i < 0) && likely(m->sq_length)) {
-                Py_ssize_t l = m->sq_length(o);
-                if (likely(l >= 0)) {
-                    i += l;
-                } else {
-                    if (!PyErr_ExceptionMatches(PyExc_OverflowError))
-                        return NULL;
-                    PyErr_Clear();
-                }
-            }
-            return m->sq_item(o, i);
-        }
-    }
-#else
-    if (is_list || PySequence_Check(o)) {
-        return PySequence_GetItem(o, i);
-    }
-#endif
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-}
 
 /* RaiseException */
 #if PY_MAJOR_VERSION < 3

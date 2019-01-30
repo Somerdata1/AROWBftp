@@ -262,3 +262,5 @@ __pycache__/
 #local test data
 TestSend/
 reception/
+*.log
+*.ini

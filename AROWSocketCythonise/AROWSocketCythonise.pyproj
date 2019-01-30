@@ -7,7 +7,7 @@
     <StartupFile>C:\Work\MSVS2017\Python\AROW_V2\AROWReceiveV2\AROWReceive\src\AROWSocket\setup.py</StartupFile>
     <SearchPath>
     </SearchPath>
-    <WorkingDirectory>C:\Work\MSVS2017\Python\AROW_V2\AROWReceiveV2\AROWReceive\src\AROWSocket</WorkingDirectory>
+    <WorkingDirectory>E:\AROW\AROW_V2\AROWReceiveV2\AROWReceive\src\AROWSocket</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>AROWSocketCythonise</Name>
     <RootNamespace>AROWSocketCythonise</RootNamespace>
@@ -25,9 +25,6 @@
     <DebugSymbols>true</DebugSymbols>
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="AROWSocketCythonise.py" />
-  </ItemGroup>
   <ItemGroup>
     <Interpreter Include="..\..\..\Win_py36_env\">
       <Id>Win_py36_env</Id>

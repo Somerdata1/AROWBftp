@@ -23,6 +23,7 @@
   <ItemGroup>
     <Content Include="AROWReceive Programming Notes.txt" />
     <Content Include="AROWRecv.ini" />
+    <Content Include="AROWSocket\BFTPSocket.pyx" />
     <Content Include="requirements.txt" />
     <Content Include="web\excanvas.js" />
     <Content Include="web\jquery.js" />

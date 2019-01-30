@@ -116,8 +116,10 @@ from OptionParser_doc import OptionParser_doc
 if sys.platform == 'win32':
     try:
         import win32api, win32process, winsound
-        
-        from BFTPSocket import BFTPSocket#python
+        try: 
+            from AROWSocket.BFTPSocket import BFTPSocket#cython
+        except:
+            from BFTPSocket import BFTPSocket#python
     except Exception as e:
        print(e)
         #raise SystemExit( "the pywin32 module is not installed: " +"see http://sourceforge.net/projects/pywin32")
