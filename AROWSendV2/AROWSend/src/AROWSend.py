@@ -461,27 +461,31 @@ class TCPStrmPkt:
                 self.sp_frame_length = len(message)
             debug_print("sending Frame..")
             self.sp_frame_num +=1
-        
+            try:        
             # start packing the header:include place holders for unused fields
-            header = struct.pack(HEADER_FORMAT,
-                MARKER1,
-                MARKER2,
-                MARKER3,
-                pad_size,
-                self.sp_frame_length,
-                self.sp_data_size,
-                self.server.server_address[1],#tcp stream port source
+                header = struct.pack(HEADER_FORMAT,
+                    MARKER1,
+                    MARKER2,
+                    MARKER3,
+                    pad_size,
+                    self.sp_frame_length,
+                    self.sp_data_size,
+                    self.server.server_address[1],#tcp stream port source
                 #self.sp_sessionnum,
-                self.sp_offset,
-                self.sp_session_numframes,
-                self.sp_frame_num,
-                HB_DELAY,#self.sp_delay,
-                time.time(),#self.sp_timeout, (frame timestamp)
-                self.sp_filesize,
-                self.sp_checksum,
-                self.sp_packettype,
-                self.sp_filename_length)
-            packet = header + message + padding.encode('utf-8')
+                    self.sp_offset,
+                    self.sp_session_numframes,
+                    self.sp_frame_num,
+                    HB_DELAY,#self.sp_delay,
+                    int(time.time()),#self.sp_timeout, (frame timestamp)
+                    self.sp_filesize,
+                    self.sp_checksum,
+                    self.sp_packettype,
+                    self.sp_filename_length)
+            
+                packet = header + message + padding.encode('utf-8')
+            except Exception as e:
+                print(e)
+                return
             strEvent.set()
             prQueue.put(((PRIORITY_ONE,self.sp_frame_num),packet),False)
             sendEvent.set()#signal the transmission thread
@@ -505,7 +509,7 @@ class MCStrmPkt:
             self.sp_numframe = 66666666
             self.sp_frame_num = 0
             self.sp_delay = HB_DELAY
-            self.sp_timeout = time.time() + 1.25 * (self.sp_delay) 
+            self.sp_timeout = int(time.time() + 1.25 * (self.sp_delay)) 
             self.sp_filesize = 44444444
             self.sp_checksum = 0
             self.sp_packettype = MC_STREAM_PACKET
@@ -611,7 +615,7 @@ class MCStrmPkt:
                 33333333,#self.sp_session_numframes,
                 MCStrmPkt.framecount,#self.sp_frame_num,
                 HB_DELAY,#self.sp_delay,
-                time.time(),#self.sp_timeout, (frame timestamp)
+                int(time.time()),#self.sp_timeout, (frame timestamp)
                 66666666, #self.sp_filesize,
                 0,#self.sp_checksum,
                 MC_STREAM_PACKET,#self.sp_packettype,
@@ -689,7 +693,8 @@ class UDPStrmPkt:
             try:
                 data = self.request[0]
                 if data:#
-                    print("UDP " + str(len(data)))
+                    #print("UDP in " + str(len(data)))
+                    debug_print("UDP in" + str(len(data)))
                     #Console.Print_temp("UDP " + str(len(data)),NL=False)
                     self.send_streampacket(data)
                 else:
@@ -725,27 +730,30 @@ class UDPStrmPkt:
                 sp_frame_length = len(message)
             debug_print("sending Frame..")
             UDPStrmPkt.framecount +=1
-            
+            try:
             # start packing the header:include place holders for unused fields
-            header = struct.pack(HEADER_FORMAT,
-                MARKER1,
-                MARKER2,
-                MARKER3,
-                pad_size,
-                sp_frame_length,
-                sp_data_size,
-                self.server.server_address[1],     #UDP stream port number,
-                22222222222222,#self.sp_offset,
-                33333333,#self.sp_session_numframes,
-                UDPStrmPkt.framecount,#self.sp_frame_num,
-                HB_DELAY,#self.sp_delay,
-                time.time(),#self.sp_timeout, (frame timestamp)
-                66666666, #self.sp_filesize,
-                0,#self.sp_checksum,
-                UDP_STREAM_PACKET,#self.sp_packettype,
-                77,#self.sp_filename_length
-                )
-            packet = header + message + padding.encode('utf-8')
+                header = struct.pack(HEADER_FORMAT,
+                    MARKER1,
+                    MARKER2,
+                    MARKER3,
+                    pad_size,
+                    sp_frame_length,
+                    sp_data_size,
+                    self.server.server_address[1],     #UDP stream port number,
+                    22222222222222,#self.sp_offset,
+                    33333333,#self.sp_session_numframes,
+                    UDPStrmPkt.framecount,#self.sp_frame_num,
+                    HB_DELAY,#self.sp_delay,
+                    int(time.time()),#self.sp_timeout, (frame timestamp)
+                    66666666, #self.sp_filesize,
+                    0,#self.sp_checksum,
+                    UDP_STREAM_PACKET,#self.sp_packettype,
+                    77,#self.sp_filename_length
+                    )
+                packet = header + message + padding.encode('utf-8')
+            except Exception as e:
+                print(e)
+                return
             prQueue.put(((PRIORITY_ONE,UDPStrmPkt.framecount),packet),False)
             sendEvent.set()#signal the transmission thread
             

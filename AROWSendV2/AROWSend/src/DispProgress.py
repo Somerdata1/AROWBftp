@@ -2,7 +2,7 @@
 
 """
 ----------------------------------------------------------------------------
-TraitEncours: Class to display current process pattern (hourglass in TXT).
+DisplayType: Class to display current process pattern (hourglass in TXT).
 ----------------------------------------------------------------------------
 
 version 0.03 du 24/05/2008

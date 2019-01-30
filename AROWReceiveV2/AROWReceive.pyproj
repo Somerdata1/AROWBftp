@@ -12,7 +12,7 @@
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <InterpreterId>MSBuild|Win_py36_env|$(MSBuildProjectFullPath)</InterpreterId>
-    <CommandLineArguments>-r TestReceive -a localhost -p 9875 -c</CommandLineArguments>
+    <CommandLineArguments>-r TestReceive -a localhost -p 9875 -u 8001</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
@@ -21,6 +21,7 @@
     <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="AROWReceive Programming Notes.txt" />
     <Content Include="AROWRecv.ini" />
     <Content Include="requirements.txt" />
     <Content Include="web\excanvas.js" />

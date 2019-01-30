@@ -12,7 +12,7 @@
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <InterpreterId>MSBuild|Win_py36_env|$(MSBuildProjectFullPath)</InterpreterId>
-    <CommandLineArguments>-S TestSend -a localhost -p 9876 -P 60 -C</CommandLineArguments>
+    <CommandLineArguments>-S TestSend -a localhost -p 9876 -P 600 </CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
@@ -21,6 +21,7 @@
     <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="AROWSend Programming Notes.txt" />
     <Content Include="AROWSend.ini" />
     <Content Include="web\excanvas.js" />
     <Content Include="web\jquery.js" />

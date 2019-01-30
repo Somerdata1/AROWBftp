@@ -2,6 +2,7 @@
 """
 ----------------------------------------------------------------------------
 AROWReceive v 2.0.0 - Unidirectional File Transfer Protocol
+January 2019
 ----------------------------------------------------------------------------
 
 For receiving files, data streams, directory trees across a unidirectional link
@@ -111,7 +112,6 @@ import time
 from statsserver import StatsServer #for browser display of stats
 from OptionParser_doc import OptionParser_doc
 
-
 # Dedicated Windows modules
 if sys.platform == 'win32':
     try:
@@ -143,7 +143,7 @@ except:
         +" see http://www.jorendorff.com/articles/python/path/"\
         +" or http://pypi.python.org/pypi/path.py/ (if first URL is down)")
 
-# plx - portability layer extension
+# plx - portability layer extension TODO: remove this as Unicode is now included
 try:
     from plx import str_lat1, print_console
 except:
@@ -278,7 +278,7 @@ class Th_TCPStreamPktSend(object):
                     if len(self.server.TCPOutQueue)>0:
                         #print ('TXLen',str(len(self.server.TCPOutQueue)))
                         if count==0:#TODO: this needs an event to wait on
-                            print(u"TCP "+ str(len(self.server.TCPOutQueue)))
+                            debug_print(u"TCP "+ str(len(self.server.TCPOutQueue)))
                            #Console.Print_temp("TCP "+ str(len(self.server.TCPOutQueue)),NL =False)
                             while len(self.server.TCPOutQueue)>0:
                                 self.request.send(self.server.TCPOutQueue.popleft())
@@ -481,7 +481,7 @@ class Th_UDPStreamPktSend:
         while UDP_Run.is_set():
         #while 1:
             if len(self.UDPOutQueue)>0:
-                #print 'TXLen',str(len(self.UDPOutQueue))
+                debug_print ('TXLen',str(len(self.UDPOutQueue)))
                 #if count==0:
                 while len(self.UDPOutQueue)>0:
                     #print "UDPcount",len (UDPOutQueue)
