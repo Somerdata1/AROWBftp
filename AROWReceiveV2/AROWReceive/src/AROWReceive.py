@@ -96,6 +96,7 @@ def show_exception_and_exit(exc_type, exc_value, tb):
 import sys, socket, struct, time,  os.path, tempfile, traceback
 sys.excepthook = show_exception_and_exit
 import threading
+# deques are used to decouple sockets and processing -packets are added to the queue, then extracted for processing
 from collections import  deque
 import socketserver
 from configparser import SafeConfigParser
@@ -116,21 +117,21 @@ from OptionParser_doc import OptionParser_doc
 if sys.platform == 'win32':
     try:
         import win32api, win32process, winsound
-        try: 
+        try: # maybe we can use cythonised library for the socket
             from AROWSocket.BFTPSocket import BFTPSocket#cython
-        except:
+        except:# if not, use the python module 
             from BFTPSocket import BFTPSocket#python
     except Exception as e:
        print(e)
         #raise SystemExit( "the pywin32 module is not installed: " +"see http://sourceforge.net/projects/pywin32")
 
-else:
+else:# Linux/Mac
     #from BFTPSocket import BFTPSocket#python
     
     try:
         from AROWSocket.BFTPSocket import BFTPSocket#cython
     except Exception as e:
-        
+        from BFTPSocket import BFTPSocket#python
         msg= "BFTPSocket library missing or incorrect, run 'setup.py build_ext --inplace' from the AROWSocket folder"
         print (msg)
         input (" Press any key to acknowledge...")
@@ -165,19 +166,15 @@ AROW_VER = ':V2.0.0'
 
 SCRIPT_NAME = os.path.basename(__file__)    # script filename
 ConfigFile = 'AROWRecv.ini'
-#RunningFile = 'AROW_run.ini'
-MODE_DEBUG = True   # check if debug() messages are displayed
+MODE_DEBUG = True   # this is overridden by the options on start
 TEMP_ROOT = "temp"    # Tempfile root
 HB_DELAY = 5 # Default time between two Heartbeats (secs)
 # This is the limit on receive when data will not be entered into the queue any more.
 #Raising the limit can lead to high de-queuing times
 #lowering leads to data corruption if data arrives faster than can be processed
-MAX_QUEUE_LEN =60000 #(tuples)#250000000  
-# in mode strict synchro retention duration
+MAX_QUEUE_LEN =60000 #(tuples)  
 
-IgnoreExtensions = ('.part', '.tmp', '.ut', '.dlm') #  Extensions of temp files which are never sent (temp files)
-#HEADER_SIZE=BFTPSocket.HEADER_SIZE
-# Types of packets:
+
 # Manifest of XFL attributes
 ATTR_CRC = "crc"                         # File CRC
 ATTR_NBSEND = "NbSend"                    # Number  sent
@@ -193,7 +190,6 @@ RxSock=None
 decodeEvent=threading.Event()
 # for stats measurement:
 stats = None
-#RxQueue=Queue()
 RxQueue=deque(maxlen=MAX_QUEUE_LEN)#the double ended queue used as a fifo to decouple tcp reception from data processing
 
 #for installer
@@ -220,7 +216,6 @@ def str_adjust (string, length=79):
 #------------------------------------------------------------------------------
 # DEBUG : Display debug messages if MODE_DEBUG is True
 #-------------------
-
 def debug(text):
     "to post a message if MODE_DEBUG = True"
 
@@ -251,12 +246,11 @@ def test_connection():
 #..............................................................................................
 
 class Th_TCPStreamPktSend(object):
-    """Threaded Class to send TCP packets to another client"""
+    """Threaded Class to send TCP packets to another client for re-streaming"""
     def __init__(self,TCPport,name,TCPAddr):
         super(Th_TCPStreamPktSend,self).__init__()
         self.sp_TCPport=TCPport
         self.sp_TCPAddr=TCPAddr
-        #self.sp_TCPAddr='localhost'
         self.name=name
         self.isTCPStreamSockConnected=False
         self.TCPOutQueue=deque()# a deque for streaming tcp data out
@@ -264,24 +258,20 @@ class Th_TCPStreamPktSend(object):
     class ThSocketServer(socketserver.ThreadingMixIn,socketserver.TCPServer):
         daemon_threads =True
         allow_reuse_address = True
-        #pass
         
     class ThRequestHandler(socketserver.BaseRequestHandler):
         def handle(self):
-            #global isTCPStreamSockConnected
             self.server.isTCPStreamSockConnected = True
             if MODE_VERBOSE:
                 print("TCP Stream Connected",)
-                #Console.Print_temp("TCP Stream Connected", NL=True)
             try:
                 count=0
                 self.server.TCPOutQueue.clear()
                 while True:
                     if len(self.server.TCPOutQueue)>0:
-                        #print ('TXLen',str(len(self.server.TCPOutQueue)))
+                        #print ('TXLen',str(len(self.server.TCPOutQueue)))# for debugging
                         if count==0:#TODO: this needs an event to wait on
                             debug_print(u"TCP "+ str(len(self.server.TCPOutQueue)))
-                           #Console.Print_temp("TCP "+ str(len(self.server.TCPOutQueue)),NL =False)
                             while len(self.server.TCPOutQueue)>0:
                                 self.request.send(self.server.TCPOutQueue.popleft())
                                 #count+=1
@@ -297,6 +287,7 @@ class Th_TCPStreamPktSend(object):
     
     
     def th_setup_srvr_skt(self, TCP_Run):
+        """set up the TCP server for re-streaming """
         address=(self.sp_TCPAddr,self.sp_TCPport)
         try:
             server=self.ThSocketServer(address,self.ThRequestHandler)
@@ -336,19 +327,6 @@ class Th_TCPStreamPktSend(object):
             print ("TCP  on Addr:", address)
             self.TCPOutQueue.clear()
             return socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-            #try:
-                #self.reconnect(address)
-                #self.tcpclient=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-                #self.tcpclient.connect(address)
-                
-               # self.isTCPStreamSockConnected= True
-                #TCP_Run.set()
-                #return self.tcpclient
-            #except Exception as e:
-                #print ('TCP Client..', e)
-                #TCP_Run.clear()
-                #return None
-                #self.isTCPStreamSockConnected = False
                 
         def reconnect(self,address):
             while TCP_Run.is_set():
@@ -369,17 +347,13 @@ class Th_TCPStreamPktSend(object):
         
     
         def run(self):
-        #def Th_TCPClientSend(self):
-            #count=0
-            #pktlen=0
             packet=""
             self.reconnect(self.address)
             while TCP_Run.is_set():
                 if len(self.TCPOutQueue)>0:
-                    #print ('TXLen',str(len(self.TCPOutQueue)))
-                    #if count==0:
+                    #print ('TXLen',str(len(self.TCPOutQueue)))# for debug
                     while len(self.TCPOutQueue)>0:
-                        #print "TCPcount",len (TCPOutQueue)
+                        #print "TCPcount",len (TCPOutQueue)# for debug
                         try:
                             packet=self.TCPOutQueue.popleft()
                             sent=self.tcpclient.send(packet)
@@ -392,7 +366,6 @@ class Th_TCPStreamPktSend(object):
                     
                 else :
                     time.sleep(0.1)#TODO: this needs an event to wait on
-                    #count=0#break   def ClientConnect(self):
                 pass
     
 
@@ -496,10 +469,9 @@ class Th_UDPStreamPktSend:
                 
             else :
                 time.sleep(0.1)#TODO: this needs an event to wait on
-                #count=0#break   
                  
 class Th_MCStreamPktSend:
-    """Threaded Class to send UDP packets to another user, includes methods for server(not implemented) and client"""
+    """Threaded Class to send Multicast UDP packets to another user"""
     def __init__(self,MCAddr,MCport,MCTtl,name):
         self.MCStrport=MCport
         self.name=name
@@ -509,7 +481,6 @@ class Th_MCStreamPktSend:
         self.MCAddr=MCAddr
         self.MCTtl=MCTtl
 
-    # non-serving version               
     def th_setup_mc_server(self,MC_Run):
         print ("Multicast  on port:", str(self.MCStrport))
         self.MCOutQueue.clear()
@@ -548,7 +519,6 @@ class Th_MCStreamPktSend:
                 
             else :
                 time.sleep(0.1)#TODO: this needs an event to wait on
-                #count=0#break   
               
     
 
@@ -570,9 +540,7 @@ class HeartBeat:
         timestamp can't be checked in absolute terms.
         """
 
-    # TODO :
-    # Add HB from receiver to emission in broadcast to detect bi-directional link
-
+   
     def __init__(self):
         #Variables locales
         self.hb_pad_size=0
@@ -623,14 +591,14 @@ class HeartBeat:
 
     def check_heartbeat(self, num_session, frame_num, delay,date):
         """ Check and diagnose last received heartbeat packet """
-        if RxSock.get_rx_connect() == False:
+        if RxSock.get_rx_connect() == False: # don't bother if not connected
             return
         msg=None
         self.hb_filedate=date
         self.print_heartbeat(date)
         # new session identification (session restart)
         if self.hb_sessionnum != num_session:
-                if frame_num==0 :
+                if frame_num==0 :# the sender has started/restarted
                     msg = 'HeartBeat : transmission restarted \n'
                     AROWLogger.info(msg)
                 # lost frame in a new session (receiver start was too late)
@@ -647,7 +615,7 @@ class HeartBeat:
         # lost frame identification
         else:
             hb_lost=frame_num-self.hb_numframe-1
-            if bool(hb_lost) :
+            if bool(hb_lost) :#this can be because of extended processing time or a break in transmission
                 msg = '\n HeartBeat : lost or delayed  %d heartbeat(s)' % hb_lost
                 AROWLogger.warn(msg)
         # Set new values
@@ -655,7 +623,6 @@ class HeartBeat:
         self.hb_timeout=time.time()+10.5*(delay)
         if msg != None:
             print(msg,)
-            #Console.Print_temp(msg, NL=True)
             sys.stdout.flush()
 
 
@@ -675,14 +642,12 @@ class HeartBeat:
                             delta=time.time()-self.hb_timeout
                             msg = 'HeartBeat : Waiting to receive  heartbeat number ( %d )' % self.hb_numframe
                             print(msg)
-                            #Console.Print_temp(msg, NL=False)
                             sys.stdout.flush()
                             time.sleep(self.hb_delay-1)
                             if Nbretard%10==0:
                                 msg = 'Warning  : Heartbeat delayed,  hb  number ( %d ) - %d ' % (self.hb_numframe, Nbretard/10)
                                 AROWLogger.warn(msg)
                                 print(msg,)
-                                #Console.Print_temp(msg, NL=True)
                             else:
                                 Nbretard=0
                             time.sleep(1)# suspend if file being received
@@ -692,11 +657,9 @@ class HeartBeat:
                     break              
     def Th_checktimeout_heartbeatT(self,HB_Stop):
         """ thread to check heartbeat """
-        #global HBStop
         Checkheartbeat=threading.Thread(None, self.checktimer_heartbeat, args =(HB_Stop,)) 
         Checkheartbeat.name="Heartbeat"
         Checkheartbeat.daemon=True
-        #HBStop = False
         Checkheartbeat.start()
     
     
@@ -712,12 +675,12 @@ def raise_priority():
     if sys.platform == 'win32':
         # Windows:
         process = win32process.GetCurrentProcess()
-        #win32process.SetPriorityClass (process, win32process.REALTIME_PRIORITY_CLASS)
+        #win32process.SetPriorityClass (process, win32process.REALTIME_PRIORITY_CLASS)# best to avoid realtime
         win32process.SetPriorityClass (process, win32process.HIGH_PRIORITY_CLASS)
     else:
         #  Unix:
         try:
-            os.nice(-20)
+            os.nice(-20)# usually only superusers can do this. On Linux amend /etc/security/limits.conf to add AROW users or groups
         except:
             print ("Not possible to raise process priority:")
             print ("You need to run with elevated privileges to get the best performance.")
