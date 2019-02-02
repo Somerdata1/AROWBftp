@@ -524,7 +524,7 @@ class Th_TCPServer:
                 return BufLevel     
       
         def handle(self):
-            global isTCPStreamSockConnected, isCtlLoThread
+            global isTCPStreamSockConnected, isCtlHiThread
             isTCPStreamSockConnected = True
             print ("AROWEmulator Hi Side Receive Control Client opened connection ")
             try:
@@ -662,6 +662,7 @@ class Th_TCPServer:
         try:
             if self.name == "LoCtrl":
                 server=self.ThSocketServer(address,self.ThLoCtrlReqHandler)
+                
                 isCtlLoThread=True;
             if self.name == "HiCtrl":
                 server=self.ThSocketServer(address,self.ThHiCtrlReqHandler)
@@ -679,6 +680,7 @@ class Th_TCPServer:
             server.allow_reuse_address = True
             print("AROWEmulator TCP Serving on: "+self.name +" " +str(ip)+": "+ str(port))
             THinst=threading.Thread(target=server.serve_forever)
+            THinst.name=self.name
             THinst.setDaemon(True)
             THinst.start()
             return server
@@ -698,7 +700,7 @@ def analyse_options():
 
     # create  optparse.OptionParser object , giving as string
     # "usage" the  docstring at the beginning of the file:
-    parser = OptionParser_doc(usage="%prog [options] <fi directory>")
+    parser = OptionParser_doc(usage="%prog [options] ")
     parser.doc = __doc__
 
     # adds possible options:

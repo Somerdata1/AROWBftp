@@ -119,7 +119,7 @@ except:
 if sys.platform == 'win32':
     # on Windows in Western Europe the CMD.exe console uses MS-DOS CP850 encoding:
     CODEC_CONSOLE = 'cp850'
-elif sys.platform in ('linux2', 'darwin'):
+elif sys.platform in ('linux', 'darwin'):
     # on Linux and MacOSX it's UTF-8:
     CODEC_CONSOLE = 'utf-8'
 else:
