@@ -2,6 +2,7 @@
 """helper to display stats from AROWReceive 
 Use localhost:8080 from browser window
 Needs index.xslt style sheet and javascript """
+#TODO: replace with flask
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import threading,time,os.path
 from socketserver import ThreadingMixIn
@@ -9,8 +10,6 @@ from socket import gethostname
 from os  import curdir,sep
 import cgi,os,sys
 
-#UPDATE_PERIOD = 5
-#PERIODS = 40
 #for installer
 def resource_path(relative_path):
     """Get absolute path to resource, for PyInstaller """
@@ -31,14 +30,11 @@ class StatsServer:
     UPDATE_PERIOD = 5
     def __init__(self,stats):
         self.name=""
-        #self.opts=options
-        #self.HB_receive= HB_receive
         self.stats=stats
         
         
     def Th_setupStatsServer(self):
         server= self.ThStatsServer(('localhost',self.stats.HTTPPort),self.StatsHandler,self.stats)
-        #server= self.ThStatsServer(('localhost',8080),self.StatsHandler,(self.opts,self.HB_receive,self.stats))
         self.name=threading.Thread(target=server.serve_forever)
         self.name.setDaemon(True)
         self.name.name="Stats"
@@ -50,16 +46,11 @@ class StatsServer:
         #we have to override the http server class to pass in our parameters to the base handler
         def __init__(self,server_address,RequestHandlerClass,stats):
             HTTPServer.__init__(self,server_address,RequestHandlerClass)
-            #self.handler=handler
             self.stats=stats
    
                
     
     class StatsHandler(BaseHTTPRequestHandler):
-        #def __init__(self):
-            #self.opts=opts
-            #self.HB_receive= HB_receive
-           # self.stats=stats  
         
         def do_GET(self):
             xmlstr=""
@@ -71,7 +62,6 @@ class StatsServer:
                 hb=stats.get_heartbeat()
                 #for pyinstaller onefile exe to work
                 self.path = resource_path(os.path.join("web",os.path.basename('index.xslt')))
-                #self.path = "/index.xslt"
                 mimetype = 'text/xml'
                 xmlstr=xmlstr+('<?xml version= "1.0" encoding="ISO-8859-1"?>\n')
                 xmlstr=xmlstr+('<?xml-stylesheet type="text/xsl" href="xslt/index.xslt"?>\n')
@@ -94,8 +84,6 @@ class StatsServer:
             if self.path =="/stats":
                 syncStats=stats.getSyncStats()
                 self.path = resource_path(os.path.join("web",os.path.basename('index.xslt')))
-                #self.path = "web" +sep+os.path.basename("index.xslt")#"/stats.xslt"
-                #self.path = "/index.xslt"#"/stats.xslt"
                 mimetype = 'text/xml'
                 xmlstr=xmlstr+('<?xml version= "1.0" encoding="ISO-8859-1"?>\n')
                 xmlstr=xmlstr+('<?xml-stylesheet type="text/xsl" href="xslt/stats.xslt"?>\n')
@@ -132,10 +120,8 @@ class StatsServer:
                 sendReply=True
             if "/xslt" in self.path:
                 mimetype = 'text/xml'
-                #filepath="web/index.xslt"
-                #filepath="index.xslt"
+
                 self.path = resource_path(os.path.join("web",os.path.basename('index.xslt')))
-                #self.path="./index.xslt"
                 sendReply = True
                 
             try:
@@ -146,22 +132,16 @@ class StatsServer:
                 if self.path.endswith ("js"):
                     mimetype = 'application/javascript'
                     self.path = resource_path(os.path.join("web",os.path.basename(self.path)))
-                    #self.path='web'+sep+os.path.basename(self.path)
                     sendReply = True
                 if sendReply ==True:
                     webfile=self.path
-                    #webfile=curdir + sep +self.path
                     f= open (webfile)
-                    #f= open (curdir + sep +self.path)
                     self.send_response(200)
                     self.send_header('Content-type', mimetype)
                     self.send_header('Content-length',os.path.getsize(webfile))
-                    #self.send_header('Content-length',os.path.getsize(curdir + sep +self.path))
                     self.send_header('cache-control','no-cache')
                     self.send_header('Pragma','no-cache')
                     self.send_header('Expires','-1')
-                    #self.send_header('Connection','keep-alive')
-                    #self.send_header('','')
                     self.end_headers()# blank line
                     if not xmlstr:
                         self.wfile.write(f.read())  

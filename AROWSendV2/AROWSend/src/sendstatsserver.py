@@ -1,5 +1,5 @@
 #!/usr/local/bin/python
-
+#TODO: replace server with flask
 """ helper to display stats from AROWSend 
 Use localhost:8080 from browser window
 Needs index.xslt stylesheet and javascript """
@@ -12,8 +12,6 @@ from socket import gethostname
 from os  import curdir,sep
 import cgi,os,sys
 
-#UPDATE_PERIOD = 5
-#PERIODS = 40
 #for installer
 def resource_path(relative_path):
     """Get absolute path to resource, for PyInstaller """
@@ -61,10 +59,6 @@ class StatsServer:
                
     
     class StatsHandler(BaseHTTPRequestHandler):
-        #def __init__(self):
-            #self.opts=opts
-            #self.HB_receive= HB_receive
-            # self.stats=stats  
         
         def do_GET(self):
             xmlop=""
@@ -76,7 +70,6 @@ class StatsServer:
                 hb=stats.get_heartbeat()
                 #for pyinstaller onefile exe to work
                 self.path = resource_path(os.path.join("web",os.path.basename('index.xslt')))
-                #self.path = "/index.xslt"
                 mimetype = 'text/xml'
                 xmlop=xmlop+('<?xml version= "1.0" encoding="ISO-8859-1"?>\n')
                 xmlop=xmlop+('<?xml-stylesheet type="text/xsl" href="xslt/index.xslt"?>\n')
@@ -101,7 +94,6 @@ class StatsServer:
                  
             if self.path =="/stats":
                 self.path = resource_path(os.path.join("web",os.path.basename('index.xslt')))
-                #self.path = "/index.xslt"#"/stats.xslt"
                 mimetype = 'text/xml'
                 xmlop=xmlop+('<?xml version= "1.0" encoding="ISO-8859-1"?>\n')
                 xmlop=xmlop+('<?xml-stylesheet type="text/xsl" href="xslt/stats.xslt"?>\n')
@@ -133,7 +125,6 @@ class StatsServer:
                 mimetype = 'text/xml'
                 #filepath="index.xslt"
                 self.path = resource_path(os.path.join("web",os.path.basename('index.xslt')))
-                #self.path="./index.xslt"
                 sendReply = True
                 
             try:
@@ -144,13 +135,10 @@ class StatsServer:
                 if self.path.endswith ("js"):
                     mimetype = 'application/javascript'
                     self.path = resource_path(os.path.join("web",os.path.basename(self.path)))
-                    #self.path='web'+sep+os.path.basename(self.path)
                     sendReply = True
                 if sendReply ==True:
                     webfile=self.path
-                    #webfile=curdir + sep +self.path
                     f= open (webfile)
-                    #f= open (curdir + sep +self.path)
                     self.send_response(200)
                     self.send_header('Content-type', mimetype)
                     self.send_header('Content-length',os.path.getsize(webfile))
@@ -158,8 +146,6 @@ class StatsServer:
                     self.send_header('cache-control','no-cache')
                     self.send_header('Pragma','no-cache')
                     self.send_header('Expires','-1')
-                    #self.send_header('Connection','keep-alive')
-                    #self.send_header('','')
                     self.end_headers()# blank line
                     if not xmlop:
                         self.wfile.write(f.read())  
