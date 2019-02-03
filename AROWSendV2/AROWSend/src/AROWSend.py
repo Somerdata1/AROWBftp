@@ -167,10 +167,10 @@ MARKER2 = 0x3A
 MARKER3 = 0x07
 ConfigFile = 'AROWSend.ini'
 RunningFile = 'bftp_run.ini'
-Freq = 1000
-Dur = 100
+#Freq = 1000
+#Dur = 100
 # this number is the buffer size that should be returned from a socket recv
-# call and is experimental
+# call and can be varied according to platform
 # It depends on the os and receiving hardware.  too low creates a large
 # overhead, too high slows processing
 #somewhere between 16000 and 500000 probably, power of 2 probably
@@ -181,11 +181,8 @@ RX_BUF_LEN = 65536
 if sys.platform == 'darwin':
     # With MacOSX exception 'Message too long' if size is too long (Packet
     # size)
-    FRAME_SIZE = 1500
+    FRAME_SIZE = 1500# no longer true
 else:
-    #if UDP_TYPE:
-        #FRAME_SIZE = 65500
-    #else:
     FRAME_SIZE = 32768
 
 MODE_DEBUG = False   # check if debug() messages are displayed
@@ -198,12 +195,10 @@ HB_DELAY = 5 # Default time between two Heartbeats (secs)
 # more.
 #Raising the limit can lead to high de-queuing times
 #lowering leads to data corruption if data arrives faster than can be processed
-#MAX_QUEUE_LEN =500000000
-# in mode strict synchro retention duration
-# a file disappears/deletes from the low-side window is deleted from the high
+# in mode strict synchro,  retention duration,
+# a file disappears/deleted from the low-side window is deleted from the high
 # side after this delay
 #OFFLINEDELAY = 86400*7 # 86400 seconds in 1 day (7 days)
-#OFFLINEDELAY = 1
 IgnoreExtensions = ('.part', '.tmp', '.ut', '.dlm') #  Extensions of temp files which are never sent (temp files)
 
 # Header fields of BFTP data (format v5) :
@@ -246,40 +241,32 @@ ATTR_NBSEND = "NS"                    # Number sent
 ATTR_LASTVIEW = "LV"                # Last View Date
 ATTR_LASTSEND = "LS"                # Last Send Date
 ATTR_NAME = "n"
-#ATTR_CRC = "crc" # File CRC
-#ATTR_NBSEND = "NbSend" # Number sent
-#ATTR_LASTVIEW = "LastView" # Last View Date
-#ATTR_LASTSEND = "LastSend" # Last Send Date
 
 #=== Values to be processed within the .ini file ========================
-# number of times 1 file will be sent (unless modified)
-#MinFileRedundancy = 1
 
 #=== GLOBAL VARIABLES =======================================================
 
-#
 # options parameters
-global options
+global options #TODO: get rid of these
 options = None
-global isFileRx# bool used to signal that files are being received and heartbeat checking
-               # should be suspended
+global isFileRx# bool used to signal that files are being received and heartbeat checking should be suspended
 isFileRx = False
 global isTxing#bool used to signal that files are being transmitted and heartbeats should be
               #suspended
 isTxing = False 
-#global isTCPConnected
-#isTCPConnected = False
 global MinFileRedundancy
 MinFileRedundancy = 1 
 
 #
-strEvent = threading.Event()
+strEvent = threading.Event()# controls pace of streaming thread
 sendEvent = threading.Event()
 
 # for stats measurement:
 stats = None
-strTCPQueue = deque()# the queue used for stream packet management
-strUDPQueue = deque()
+strTCPQueue = deque()# the queue used for TCP stream packet management
+strUDPQueue = deque()# the queue used for UDP stream packet management
+# the packet types are not necessarliy sent in time order - streaming packets take precedence over file and 
+#management packets, to minimise latency. 
 prQueue = queue.PriorityQueue()
 PRIORITY_ONE = 1
 PRIORITY_TWO = 2
@@ -340,7 +327,7 @@ def exit_help():
 
 
 #------------------------------------------------------------------------------
-# MTIME2STR : Convert date as a string
+# MTIME2STR : Convert date to a string
 #-------------------
 def mtime2str(file_date):
     "Convert a file date to string for display."
@@ -421,14 +408,12 @@ class TCPStrmPkt:
         sp_file_num_frames = 0    
         
         def handle(self):
-            #global isTCPConnected
             try:
-                #isTCPConnected = True
                 while True:
                     data = self.request.recv(4096)
                     if data:# data is accumulated until a threshold is reached - needs a timeout to flush
                         self.send_streampacket(data)
-                        #Console.Print_temp("TCP "+str(sent),NL=False)
+                        #Console.Print_temp("TCP "+str(sent),NL=False)#for debug
                     else:
                         self.request.close() #called when client disconnects
                         break
@@ -471,7 +456,6 @@ class TCPStrmPkt:
                     self.sp_frame_length,
                     self.sp_data_size,
                     self.server.server_address[1],#tcp stream port source
-                #self.sp_sessionnum,
                     self.sp_offset,
                     self.sp_session_numframes,
                     self.sp_frame_num,
@@ -481,12 +465,13 @@ class TCPStrmPkt:
                     self.sp_checksum,
                     self.sp_packettype,
                     self.sp_filename_length)
-            
+            # we always send bytes, even if unicode names are used. 
                 packet = header + message + padding.encode('utf-8')
             except Exception as e:
                 print(e)
                 return
             strEvent.set()
+            # enqueue the frame, using the highest priority for streaming source data
             prQueue.put(((PRIORITY_ONE,self.sp_frame_num),packet),False)
             sendEvent.set()#signal the transmission thread
             strEvent.clear()
@@ -504,7 +489,6 @@ class MCStrmPkt:
             self.sp_data_size = 0
             self.sp_sessionnum = 99999999
             MCStrmPkt.sp_MCTtl = ttl
-            #self.sp_offset=8888888888888888
             self.sp_session_numframes = 77777777
             self.sp_numframe = 66666666
             self.sp_frame_num = 0
@@ -524,19 +508,14 @@ class MCStrmPkt:
             
     def th_setup_mc_srvr(self):
         """ for external connection, clients attach via the port number (only one) """
-        #server_address=('localhost',self.sp_MCPort)
         server_address = ('',self.sp_MCPort)
         """
        use a standard UDP server to server connecting clients
         """
         try:
-            #MCAST_GRP = '224.1.1.1'
-            #MCAST_PORT = 5007
             server = socketserver.UDPServer(server_address,self.RequestHandler)
-            #server=self.ThSocketServer(server_address,self.RequestHandler)#
             #use this to launch one thread per request
             server.max_packet_size = 65536
-            #server.socket.bind((self.sp_MCGroup, self.sp_MCPort))
             mreq = struct.pack('4sl', socket.inet_aton(self.sp_MCGroup), socket.INADDR_ANY)
             server.socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
             server.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
@@ -545,9 +524,6 @@ class MCStrmPkt:
             skserver.name = "MCServer"
             #if MODE_VERBOSE:
             msg = "Multicast Server running on port level %d" % (self.sp_MCPort)
-            #printLock.acquire()
-            #Console.Print_temp(msg,NL=True)
-            #printLock.release()
             print(msg,)
             sys.stdout.flush()
             AROWLogger.info(msg)
@@ -560,13 +536,13 @@ class MCStrmPkt:
             print (e)
             
     class RequestHandler(socketserver.BaseRequestHandler):
-        """ Class to handle client requests on connection to the udp server"""
+        """ Class to handle client requests on connection to the mc server"""
         def handle(self):
             
             try:
                 data = self.request[0]
                 if data:#
-                    #Console.Print_temp("MC "+str(len(data)),NL=False)
+                    #Console.Print_temp("MC "+str(len(data)),NL=False)# debug
                     self.send_streampacket(data)
                 else:
                     self.request.close() #called when client disconnects
@@ -661,8 +637,7 @@ class UDPStrmPkt:
             
         
                
-    #class ThSocketServer(socketserver.ThreadingMixIn,socketserver.UDPServer):
-        #pass
+   
         
     def th_setup_udp_srvr(self):
         """ for external connection, clients attach via the port number (only one) """
@@ -792,7 +767,6 @@ class HeartBeat:
         self.hb_checksum = 0
         self.hb_packettype = HEARTBEAT_PACKET
         self.hb_filename_length = 0
-        #self.hb_timeout=time.time()+(self.hb_delay)
         self.hb_timeout = int(time.time() + 1.25 * (self.hb_delay)) 
         self.hb_filedate = 0
         
@@ -811,7 +785,7 @@ class HeartBeat:
         return(self.hb_numframe, self.hb_timeout)
 
     def print_heartbeat(self):
-        """ Print internal values of heartbeat """            #self.sock.setblocking(0)
+        """ Print internal values of heartbeat """
 
         #print ("----- Current HeartBeart -----")
         #print ("Session ID : %d " %self.hb_sessionnum)
@@ -835,8 +809,7 @@ class HeartBeat:
         # at the receiver
         # give a session number to trace high-side stimulus from the low-side
         # num frame permits tracing iterations within a session
-        # for
-        # static assignment for testing and qualification of the mod
+        # 
         
         if File_sendStop.is_set():
             return
@@ -907,7 +880,9 @@ class RateLimiter:
 
     def __init__(self, flowrate):
         """class contructor RateLimiter.
-
+        The diode path or receive processing may be too slow to prvent data loss by overrunning buffers.
+        Flow rate limiting allows the sending side to regulate the data flow, dependant on receive platform
+        capabilities. 
         flow : max flow allowed in Kbps."""
         # flow in Kbps converted to octets/s
         self.max_flow = flowrate * 1000 / 8
@@ -920,7 +895,6 @@ class RateLimiter:
     def start_time(self):
         "to (re)start flow measurement."
         self.strt_time = time.time()
-        #self.strt_time = time.clock()
         self.octets_sent = 0 
 
     def inc_data_count(self, octets):
@@ -930,8 +904,6 @@ class RateLimiter:
 
     def total_time(self):
         "get total measurement time."
-        #if (time.time() - self.strt_time) == 0:
-            #print (time.strftime("%H:%M:%S",time.localtime(time.time())),time.strftime("%H:%M:%S",time.localtime(self.strt_time)))
         return(time.time() - self.strt_time)
         
     def flow_rate(self):
@@ -1092,6 +1064,10 @@ class SendOneFile(threading.Thread):
             debug_print("file_size = %d" % file_size)
             debug_print("file_date = %s" % mtime2str(file_date))
             """
+            There are two methods for CRC calc - pre-sending and during-sending.
+           Pre-sending can cause long latencies if large file CRC calcs are needed, but during-sending slows the whole
+           transfer down. in general during-sending is more efficient. A fast assembler-based crc calc
+           would help this.
             # calculate  CRC32 before sending file
             if crc==None:
                 crc32=CRC32.CalcCRC(self.send_file,File_sendStop)
@@ -1187,7 +1163,6 @@ class SendOneFile(threading.Thread):
                 try:
                     self.ObjectCount+=1
                     prQueue.put(((PRIORITY_TWO,self.ObjectCount),frame),True)# ordered by priority, then time so packets stay in sequence
-                    #prQueue.put(((PRIORITY_TWO,(name_length+frame_num)),frame),True)
                     sendEvent.set()
                     if File_sendStop.is_set():
                         return -1
@@ -1206,11 +1181,8 @@ class SendOneFile(threading.Thread):
                 #sys.stdout.flush()
             if MODE_DEBUG:
                 print("transfer in %.4f seconds - flow rate %d Kbps" % (rate_limit.total_time(), rate_limit.flow_rate() * 8 / 1000))
-                #Console.Print_temp("transfer in %.4f seconds - flow rate %d Kbps" % (rate_limit.total_time(), rate_limit.flow_rate() * 8 / 1000))
             #calculate crc while file is being sent - update the reference tree
-            
-            #self.DRef.dict[os.path.join(*(dest_file.split(os.path.sep)[2:]))].set(ATTR_CRC,
-            #str(crc32))
+            #self.DRef.dict[os.path.join(*(dest_file.split(os.path.sep)[2:]))].set(ATTR_CRC,str(crc32))
             #self.DRef.dict[dest_file].set(ATTR_CRC, str(crc32))
             #stats.add_rate(rate_limit.flow_rate()*8/1000)
             isTxing = False
@@ -1222,12 +1194,10 @@ class SendOneFile(threading.Thread):
             isTxing = False
         print( "final crc"+str(crc32))
         return crc32
-        #return session_num_frames
-    
+      
     def send_info_message(self,infomsg,msgtype,ipno):
-        #msgtypes indicate formatting - xml, mime etc, plus special case of
-        #start(100) and close(101)
-        #ipno is the source ip identifier as long
+        #msgtypes indicate formatting - xml, mime etc, plus special case of start(100) and close(101)
+        #ipno is the source ip identifier as a long type
         if msgtype == None:
             msgtype = 0
         msg = infomsg[:16384] if len(infomsg) > 16384 else infomsg
@@ -1259,14 +1229,13 @@ class SendOneFile(threading.Thread):
         #print len(frame)
         prQueue.put(((PRIORITY_FOUR,1),frame))#enqueue frame at low priority
         sendEvent.set()# signal transmission thread
-          # pad for 4 byte alignment.  NB this is for legacy AROW, not needed for hw revisions from Feb2013
-
+  
 
 #the threading version of send
 class SendFiles(threading.Thread):
     """Class to organise files to be sent, breaking into frames, tagging with crc,
-     checking for changes etc. This is expanded in V1.3 to introduce levelling of folders. This
-     creates directory trees for each folder level to a dpeth set by the user. Each folder
+     checking for changes etc. This is expanded from V1.3 to introduce levelling of folders. This
+     creates directory trees for each folder level to a depth set by the user. Each folder
      tree consumes RAM, for a whole tree this can be very large when the tree is very large (>10GB)
      Breaking up the tree into sub-trees reduces the memory used and speeds up the first file transmission.
      It also allows individual folder reconstruction from the receive side. For large trees, a good
@@ -1309,31 +1278,26 @@ class SendFiles(threading.Thread):
             session_start = int(time.time()) #seconds since epoch
             timeoutEvent.clear()
             AROWLogger.info(u'Synchronising  directory "%s"' % self.basepath)
-           
-            #AROWLogger.info(u'Synchronising  directory "%s"' % str_lat1(self.basepath, errors='replace'))
             # use the global RateLimiter object for all transfers:
             rate_limiter = RateLimiter(self.options.flowrate)
             self.send_info_message(hostname, 102, ipno)  
             global MinFileRedundancy,deleteDelay#,isTCPConnected
-            # TODO : Distinguish between the treatment of local/ remote tree
             if (0):
                 print(u"local tree structure")
                 #  use with_directory to detect transmission need
             else:
-                
-                
                 #     Loop 1 : Analyse and prioritise files
                 self.isAllFilesSent = False
-                # setup display progress cyclical pattern
-                
+                # setup console display progress rotating pattern
                 self.displayType.StartIte()
                 #"""
                 fileet = ET.Element('dt')
                 fileet.set('depth', str(options.depth))
+                #if a manifest file is used, set the root path to the file root.
                 if options.manifest or (options.manifest_start and  self.LoopCount > 0):
                     self.sessRoot,ext = os.path.splitext(sessionFile)
                     fileet.set('n', os.path.split(sessionFile)[0])
-                else:
+                else:# set the rootpath to the temp file root
                     self.sessRoot,ext=os.path.splitext(self.tempsession)
                     fileet.set('n', os.path.split(self.tempsession)[0])
 
@@ -1363,27 +1327,21 @@ class SendFiles(threading.Thread):
                     tree = ET.ElementTree(fileet)
                     tree.write(sessionFile)# write out the list of all temp/sync files
                 self.LoopCount+=1
-                if options.manifest:#send the sync files
+                if options.manifest:#send the sync files as well as the tree
                     sesslist = self.DScan.read_file(sessionFile)
                     for member in sesslist:
                         f = os.path.join("arowsync",os.path.split(member)[1])
                         self.send_object(member,f , rate_limiter,session_num=session_start) 
-                                    
                     self.send_object(sessionFile, os.path.join("arowsync",os.path.split(sessionFile)[1]), rate_limiter,session_num=session_start) 
-                        
                 if options.pause > 0:
                     self.wait_in_loop(session_start)# the wait for each loop
                 else:
                     File_sendStop.set()
         debug_print("End Loop send")
-        
-        #raise KeyboardInterrupt()
-    
+     
     def scan_and_compare(self,ext,rate_limiter,session_start,fileet, pathlist):
-        #pathlist=pathlist[::-1]# reverse list
         while (not(self.isAllFilesSent) or (self.DirCount < len(pathlist))):
         #"""
-        #while (not(self.isAllFilesSent)) :
             if File_sendStop.is_set():
                 break
             self.directory = pathlist[self.DirCount][0]# get the directory name for this iteration
@@ -1415,7 +1373,6 @@ class SendFiles(threading.Thread):
                 if MODE_DEBUG:
                     msg = "%s - Comparing trees" % mtime2str(time.time())
                     print(msg,)
-                    #Console.Print_temp(msg,NL=True)
                     AROWLogger.info(msg)
                 #DScan.read_disk(directory)
             debug_print("%s - Analyse tree structure" % mtime2str(time.time()))
@@ -1425,6 +1382,7 @@ class SendFiles(threading.Thread):
                 relpath = os.path.relpath(self.directory, self.basepath)
             # compare the DRef and DScan trees, update the dictionaries
             same, different, only1, only2 = xfl.compare_DT(self.DScan, self.DRef,self.LoopCount,relpath)
+            # process each group of files identified by the compare
             self.process_deleted_files(only2,relpath)
             self.process_new_files(only1,relpath)
             self.process_modified_files(different)
@@ -1432,31 +1390,25 @@ class SendFiles(threading.Thread):
             t1 = threading.Thread(target=self.setup_recovery_file_attribs,name="DrefFileThrd")
             t1.start()
             #self.setupRecoveryFileAttribs()
-            
-            #FileToSend=[]
             self.create_file_list(same,only1,different,dirlevel)
             same.clear(),only1.clear(),different.clear()#,only2.clear()
             only2 = []
-            #Console.Print_temp("%s - Priority to previously unsent files\n"
-            #%mtime2str(time.time()))
             sys.stdout.flush()
-            #FileToSend = sortDictBy(FileToSend, "iteration")#removed for use
-            #with deque
+            #FileToSend = sortDictBy(FileToSend, "iteration")#removed for use with deque
             print((u"Number of files to synchronise : %d" % len(self.FilesToSend)),)
-            #Console.Print_temp((u"Number of files to synchronise : %d" % len(self.FilesToSend)),NL=False)
             debug_print(u"Number of file to synchronise : %d" % len(self.FilesToSend))
             #if len(self.FilesToSend)==0:
                 #self.isAllFilesSent=True
             self.loopsend = RateLimiter(self.options.flowrate)
             self.loopsend.start_time()
             print(u"%s - Sending data " % mtime2str(time.time()),)
-            #Console.Print_temp(u"%s - Sending data " % mtime2str(time.time()),NL=False)
             sys.stdout.flush()
             folderdepth = options.depth
+            # now send all the queued files
             self.send_queued_files(rate_limiter,session_start,dirlevel)
             self.DScan.dict.clear()
             #self.FilesToSend.clear()
-            t1.join()
+            t1.join()# wait for the thread to finish
             self.write_backup_file()# this has to finish before the next scan starts
             #"""
             #update the session file list
@@ -1466,26 +1418,22 @@ class SendFiles(threading.Thread):
             head,tail = os.path.split(self.XFLFileName)
             e = ET.SubElement(fileet,"file")
             e.text = str(tail)   
-            
             #"""
-                    
     
     def process_new_files(self,only1,relpath):
         if only1:
             msg = u"%s - Processing %d New items\n " % (mtime2str(time.time()),len(only1))
             print(msg,)
-            #Console.Print_temp(msg,NL=False)
-            #sys.stdout.flush()
             debug_print(u"\n========== New  ========== ")
         RefreshDictNeeded = False
         for f in sorted(only1):
-            if(File_sendStop.is_set() == False):
+            if(File_sendStop.is_set() == False):# only do if stop has not been signalled.
+               #This can happen asynchronously, so we need to be able to break the loop
                 self.displayType.AffChar()
                 debug_print("N  " + f)
                 parent, myfile = f.splitpath()
                 index = 0
                 if parent == relpath:
-                #if parent == '':
                     ET.SubElement(self.DRef.et, self.DScan.dict[f].tag)
                     index = len(self.DRef.et) - 1
                     if (self.DScan.dict[f].tag == xfl.TAG_FILE):
@@ -1521,8 +1469,6 @@ class SendFiles(threading.Thread):
         if only2:
             msg = u"%s - Processing %d Deleted items\n" % (mtime2str(time.time()),len(only2))
             print(msg,)
-            #Console.Print_temp(msg,NL=False)
-            #sys.stdout.flush()
             debug_print(u"\n========== Deleted ========== ")
         for f in sorted(only2, reverse=True):#traverse the list backwards to delete files before directories
             debug_print("S  " + f)
@@ -1588,7 +1534,6 @@ class SendFiles(threading.Thread):
         if different:
             msg = u"%s - Processing %d Modified items\n" % (mtime2str(time.time()),len(different))
             print(msg)
-            #Console.Print_temp(msg,NL=False)
             debug_print(u"\n========== Modified  ========== ")
         for f in (different):
             self.displayType.AffChar()
@@ -1605,7 +1550,6 @@ class SendFiles(threading.Thread):
         if same:
             msg = u"%s - Processing %d matched items\n" % (mtime2str(time.time()),len(same))
             print(msg)
-            #Console.Print_temp(msg,NL=False)
             sys.stdout.flush()
             debug_print(u"\n========== Matched  ========== ")
         for f in (same):
@@ -1625,7 +1569,6 @@ class SendFiles(threading.Thread):
         if MODE_VERBOSE:
             msg = "u%s - setting attributes in Recovery File %s\n" % (mtime2str(time.time()),self.XFLFileName)
             print(msg)
-            #Console.Print_temp(msg)
         self.DRef.et.set(xfl.ATTR_TIME, str(time.time()))#set the recovery file timestamp
         if self.XFLFileName == "AROWsynchro.xml":
             if os.path.isfile(self.XFLFileName):
@@ -1660,7 +1603,7 @@ class SendFiles(threading.Thread):
     def filter_files(self,f,dirlevel):
         if(File_sendStop.is_set() == False):
             self.displayType.AffChar()
-            if str(f).find("arowsync/AROWsynchro") == 0:
+            if str(f).find("arowsync/AROWsynchro") == 0:# this should be a variable, perhaps from options
                 return
             
             root,extension = os.path.splitext(os.path.basename(f))
@@ -1681,7 +1624,7 @@ class SendFiles(threading.Thread):
         ToSend = len(self.FilesToSend)
         #head,tail=os.path.split(self.directory)
         #a,b=os.path.split(head)
-        # bail if the total loop time > the permitted transmit time and there
+        # bale out  if the total loop time > the permitted transmit time and there
         # are no more files- why?
         while LastFileSendMax == False:
             if(File_sendStop.is_set() == False): 
@@ -1740,11 +1683,9 @@ class SendFiles(threading.Thread):
                                         # add the last sent file time to the
                                         # manifest file
                                         self.DRef.dict[f].set(ATTR_LASTSEND, str(time.time()))
-                                        #set the number of times this file has been
-                                        #sent
+                                        #set the number of times this file has been sent
                                         self.DRef.dict[f].set(ATTR_NBSEND, str(int(self.DRef.dict[f].get(ATTR_NBSEND)) + 1))
                                         self.DRef.dict[f].set(ATTR_CRC, str(crc))
-                                    
                                         self.FilesSent+=1
                                     else:
                                         return        
@@ -1765,8 +1706,6 @@ class SendFiles(threading.Thread):
                 else:
                     # no files to send, can exit loop 2
                     LastFileSendMax = True
-                    #if not self.isAllFilesSent:
-                    #self.LoopCount+=1
                     self.isAllFilesSent = True
                     self.FilesToSend.clear()    
             else:
@@ -1779,10 +1718,7 @@ class SendFiles(threading.Thread):
         if MODE_VERBOSE:
             msg = u"%s - Writing Backup recovery file... %s \n" % (mtime2str(time.time()),self.XFLFileName)
             print(msg,)
-            #Console.Print_temp(msg,NL=True)
             AROWLogger.info(msg)
-        #Console.Print_temp("%s - Backup recovery file \n"
-        #%mtime2str(time.time()))
         self.DRef.et.set(xfl.ATTR_TIME, str(time.time()))
         if self.XFLFileName == "AROWsynchro.xml" :
             if os.path.isfile(self.XFLFileName):
@@ -1797,29 +1733,27 @@ class SendFiles(threading.Thread):
             self.DRef.write_file(self.XFLFileName)
         except Exception as e:
             pass
+
     def wait_in_loop(self,session_start):
         waiting = options.pause # wait from end of last scan
         if waiting > 0:
             NextScanTime = int(time.time() + waiting)
-            #NextScanTime = time.time() + waiting
             self.send_scan_end_message(self.FilesSent,NextScanTime,session_start)
             msg = "%d File(s) sent %s Next scan in %d seconds at %s " % (self.FilesSent,mtime2str(time.time()),waiting,timepart2str(NextScanTime))
             print(msg,)
-            #Console.Print_temp(msg, NL=True)
             AROWLogger.info(msg)
-            gc.collect()
+            gc.collect()# loops of large files can consume lots of memory, encourage the garbage collector between loops
             #print("self.DRef.dict[f].get(ATTR_LASTVIEW)%s - Waiting %d secs
             #before new scan" %(mtime2str(time.time()),waiting))
             timeoutEvent.wait(waiting)# delay can be interrupted for resetting or shutdown to exit thread
             if options.pause > waiting:# pause may have been changed while waiting and could be longer
                 waiting = options.pause - File_send.loopsend.total_time()
                 print("%s - Waiting %d secs before new scan" % (mtime2str(time.time()),waiting),)
-                #Console.Print_temp("%s - Waiting %d secs before new scan" % (mtime2str(time.time()),waiting),NL=True)
                 timeoutEvent.wait(waiting)    
 
     def send_object(self,send_file, dest_file, rate_limit=None, session_num=None,
         session_num_frames=None):
-        """To enqueue send a file framed in UDP/TCP BFTP.
+        """To  send a file framed in UDP/TCP BFTP.
 
         send_file : local filename for the source (local disk)
         dest_file   : path relative to file in the destination directory
@@ -1831,25 +1765,14 @@ class SendFiles(threading.Thread):
             self.ObjectCount = 0
         self.send_file_name = send_file
         offset = 0
-        #dest_file_len=len(dest_file)
-
+     
         #msg = "Sending file %s..." % self.send_file
-        #Console.Print_temp(msg,NL=True)
         #AROWLogger.info(msg)
         if session_num == None:
             session_num = int(time.time())
-        
-        
         session_num_frames = 0
-        #if sys.platform == 'win32':
-            # correct accented characters under Windows
-      #      file_name_dest = (dest_file.encode('utf_8','strict'))
-        #else:
-            # otherwise carry on
-        #file_name_dest = str(dest_file)
         file_name_dest = dest_file.encode('utf-8')
         name_length = len(file_name_dest)
-               
         if MODE_DEBUG:
             debug_print(u"session number         = %d" % session_num)
             debug_print(u"session frame number  = %d" % session_num_frames)
@@ -1858,9 +1781,7 @@ class SendFiles(threading.Thread):
         if name_length > MAX_FILE_LENGTH:
             raise ValueError
         if os.path.isfile(self.send_file_name):
-        #if self.send_file.isfile():
             file_size = os.path.getsize(self.send_file_name)
-            #file_size = self.send_file_name.getsize()
             file_date = os.path.getmtime(self.send_file_name)
             debug_print(u"file_size = %d" % file_size)
             debug_print(u"file_date = %s" % mtime2str(file_date))
@@ -1886,7 +1807,7 @@ class SendFiles(threading.Thread):
         debug_print(u"max_data_size = %d" % max_data_size)
         nb_frames = int((file_size + max_data_size - 1) / max_data_size)
         if nb_frames == 0:
-            # if the file is empty, still necessary to send a packet
+            # if the file is empty, still necessary to send a frame
             nb_frames = 1
         debug_print(u"number of frames = %d" % nb_frames)
         still_to_send = file_size
@@ -1905,7 +1826,6 @@ class SendFiles(threading.Thread):
                     else:
                         data_size = still_to_send
                         pad_size = 4 - (data_size + name_length) % 4
-                        #pad_size=(data_size+name_length)%4
                         if pad_size == 4:
                             pad_size = 0
                     if pad_size == 1:
@@ -1959,10 +1879,6 @@ class SendFiles(threading.Thread):
                     print(e)
                 #calculate crc while file is being sent
                 try:
-                    #frame = str(header.hex()) + file_name_dest + str(dataBuf[:dataRead]) + padding
-                    #print("Filename bytes "+str(file_name_dest))
-                    # convert all to bytearray
-                    #frame =header+file_name_dest.encode('utf-8')+dataBuf[:dataRead] + padding.encode('utf-8')
                     frame = header + file_name_dest + dataBuf[:dataRead] + padding
                 except Exception as e:
                     print(e)
@@ -1970,8 +1886,6 @@ class SendFiles(threading.Thread):
                 # calculate  CRC32 before sending file
                 frame = header + file_name_dest + data+padding
                 """
-                #print( "frame crc "+str(crc32))
-                #print( "frame count "+str(self.ObjectCount))
                 try:
                     self.ObjectCount+=1
                     prQueue.put(((PRIORITY_TWO,self.ObjectCount),frame),True)# ordered by priority, then object number so packets stay in sequence, blocks until free slot
@@ -1987,13 +1901,9 @@ class SendFiles(threading.Thread):
                 percentage = 100 * (frame_num + 1) / nb_frames
                 # display percentage: comma suppresses carriage return
                 if not percentage % 10:
-                    #Console.Print_temp((u"%d%%\r" % percentage),NL=False)
                     print (u"%d%%\r" % percentage)
-                # force display update
-                #sys.stdout.flush()
             if MODE_DEBUG:
                 print(u"transfer in %.4f seconds - flow rate %d Kbps" % (rate_limit.total_time(), rate_limit.flow_rate() * 8 / 1000))
-                #Console.Print_temp(u"transfer in %.4f seconds - flow rate %d Kbps" % (rate_limit.total_time(), rate_limit.flow_rate() * 8 / 1000))
             #calculate crc while file is being sent - update the reference tree
             
             #self.DRef.dict[os.path.join(*(dest_file.split(os.path.sep)[2:]))].set(ATTR_CRC,
@@ -2009,7 +1919,6 @@ class SendFiles(threading.Thread):
             isTxing = False
         #print( "final crc "+str(crc32))
         return crc32
-        #return session_num_frames
 
     def send_delete_file_message(self,delfile):
         """ Send a message to delete the high-side file
@@ -2102,9 +2011,6 @@ class SendFiles(threading.Thread):
             print(e)
             return
         frame = header + message.encode('utf-8')  #
-        #frame = str(header.hex()) + message #68 bytes
-        #print ("Header: "+ str(len(str(header.hex()))))
-    
         print ("Scan Message: "+ str(len(frame)))
         try:
             prQueue.put(((PRIORITY_FOUR,1),frame),False)#enqueue frame at low priority
@@ -2148,7 +2054,6 @@ class SendFiles(threading.Thread):
         #print len(frame)
         try:
             prQueue.put(((PRIORITY_FOUR,0),frame),False)#enqueue frame at low priority
-            #prQueue.put((PRIORITY_FOUR,frame))#enqueue frame at low priority
         except Exception as e:
             print(e)
         sendEvent.set()# signal transmission thread
@@ -2171,7 +2076,6 @@ def sort_dict_by(nslist, key):
     nslist = map(lambda x, key=key: (x[key], x), nslist)
     nslist.sort()
     return map(lambda key_x:key_x[1], nslist)
-#    return map(lambda (key,x): x, nslist)
 #---------------------------------------------------------------------------------------------------------------
 class Stats:
     """class for calculating transfer stats"""
@@ -2454,7 +2358,7 @@ if __name__ == '__main__':
     hostname = socket.gethostname()
     msg = u"  <AROWSend>  Copyright (C) 2019  Somerdata Ltd \n \
      This program comes with ABSOLUTELY NO WARRANTY;\n\
-     This is free software, and you are welcome to redistribute it under certain conditions\n\
+     This is free software, and you are welcome to redistribute it carefully under certain conditions\n\
      See Licence distributed with this software"
     print( msg)
     #(hostname,alias,ipaddr)=socket.gethostbyname_ex(socket.getfqdn())
@@ -2603,7 +2507,6 @@ if __name__ == '__main__':
                         dirlist = DRef.dir_walk(target,followlinks=True,depth=options.depth)
                     except Exception as e:
                         print(str(e),)
-                        #Console.Print_temp(str(e), NL=True)
                         AROWLogger.error(str(e))
                     
             if options.loop:
@@ -2612,7 +2515,6 @@ if __name__ == '__main__':
                     # setup to compare the read file with the scanned
                     # information
                     File_send = SendFiles(dirlist,target,options,DRef,XFLFile,File_sendStop,timeoutEvent,TempFile)
-                    #File_send=SendFiles(target,options,DRef,XFLFile,File_sendStop,timeoutEvent)
                     File_send.send_info_message(hostname, 100, ipno)  
                     File_send.name = "Filesend"
                     File_send.start()
@@ -2620,7 +2522,6 @@ if __name__ == '__main__':
                 except Exception as e:
                     msg = u"Error: sending tree failed."
                     print(msg,)
-                    #Console.Print_temp(msg, NL=True)
                     traceback.print_exc()
                     AROWLogger.error(msg)
                 #testloop=0
@@ -2663,5 +2564,4 @@ if __name__ == '__main__':
     else:
         msg = u"Error: No Socket Connection"# fatal so exit
         print(msg,)
-        #Console.Print_temp(msg,NL=True)
         cleanup()

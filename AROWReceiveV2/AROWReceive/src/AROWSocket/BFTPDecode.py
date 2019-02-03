@@ -54,7 +54,7 @@ else:
 try:
     from path import path
 except:
-    
+    # todo: get rid of this module
     raise ImportError("the path module is not installed:" + " see http://www.jorendorff.com/articles/python/path/" + " or http://pypi.python.org/pypi/path.py/ (if first URL is down)")
 
 global MODE_DEBUG
@@ -86,11 +86,11 @@ copy_threads = {}
 
     # packed for maximum efficiency on 32-bit boundary systems
 HEADER_FORMAT = "4B 3I Q 4I Q I 2H" #python3 uses unsigned for crc
-#HEADER_FORMAT = "BBBBIIIQIIIIQiHH"
+
    # Correction bug 557 : size of format differs according to OS
 HEADER_SIZE = struct.calcsize(HEADER_FORMAT)
 
-        # size : Win32 (54) ; Linux (54) ; MacOSX PPC (50)
+# size : Win32 (54) ; Linux (54) ; MacOSX PPC (50)
         
 class AppErrors:
     ERROR_SUCCESS=0
@@ -100,7 +100,7 @@ class AppErrors:
     FILE_DUPLICATE=100
 
 
-# class DECODE
+
 def mtime2str(file_date):
     "Convert a file date to string for display"
     localtime = time.localtime(file_date)
@@ -108,7 +108,7 @@ def mtime2str(file_date):
 #-------------------
 class Decode :    
     """ class to decode AROW TCP frames in a separate thread"""
-    
+    # the packet types - each frame is tagged with one of these so that the correct decoding can be applied
     FILE_PACKET = 5  # File
     INFO_PACKET = 2     
     DIRECTORY_PACKET = 1  # Directory (not yet used)
@@ -159,26 +159,24 @@ class Decode :
         # DecodeTCP.join()
     
                       
-    def decode_stream1(self,Decode_Run): # this is a bit faster
+    def decode_stream1(self,Decode_Run): # this is a bit faster. The speed of processing is limited by this, and the file packet reconstruction.
         "To unpack and decode a TCP frame."
         global FilesReceived, FilesSent
         defer_proc = 0.01
-        frameerror = 0# counts errored frames.  If excessive, abandons the processing and resets the
-                      # queue
+        frameerror = 0# counts errored frames.  If excessive, abandons the processing and resets the queue
         while Decode_Run.is_set():
-        #while DecodeStop == False:
             # only process when data is not being received - this changes the
-            # balance between processing and receivingfile data and streaming
+            # balance between processing and receiving file data and streaming
             # data
             self.decodeEvent.wait(defer_proc)
-            #process every 100mS
+            #process every defer_proc mS
                
             if frameerror > 10:
                 frameerror = 0
                 self.RxQueue.clear()
                 self.AROWLogger.error('Queue reset, multiple frameerrors')
                 print('Reception errors: Queue reset')
-            if len(self.RxQueue) > 0:# the minimum frame size if 4 byte padding is used on tx
+            if len(self.RxQueue) > 0:# only process if there is data
                 # extract the frame header
                 try:
                     self.header,frame_data = self.RxQueue.popleft()
@@ -213,12 +211,14 @@ class Decode :
                     self.AROWLogger.error('unknown packet type: 0x%x, 0x%s' % (self.packet_type, binascii.hexlify(self.header)))
                     frameerror+=1
                     continue# in general, we don't want to bale out, just keep going and note errors
+                # now process the various packet types
                 if self.packet_type == self.TCP_STREAM_PACKET:
                     if self.data_size != len(frame_data) - self.frame_pad_size:
                         self.debug_print(u"error:TCP packet size = %d" % len(frame_data))
                         frameerror+=1
                         continue
                     self.data = frame_data
+                    # for stream packets , just pass on to the stream queue
                     if self.TCPSend.isTCPStreamSockConnected == True:
                         self.TCPSend.TCPOutQueue.append(self.data)
                     continue#can't be anything else so skip next
@@ -243,13 +243,15 @@ class Decode :
                     if self.MCSend.isUDPStreamSockConnected:
                         self.MCSend.MCOutQueue.append(self.data)
                     continue
+                # a message-containing packet
                 if self.packet_type == self.INFO_PACKET:# use to trigger post reception actions - filtering etc.
                     self.process_info_packet(frame_data)
                     continue
-                    
+                  # a special message indicating sender has finished a scan- used to post-process received files  
                 if self.packet_type == self.SCANEND_PACKET:# use to trigger post reception actions - filtering etc.
                     self.process_scan_end_packet()
                     continue
+                #packet containing (part of) a file
                 if self.packet_type == self.FILE_PACKET:
                     ret=self.process_file_packet(frame_data,frameerror)
                     continue
@@ -259,6 +261,7 @@ class Decode :
                     #check the session number, the frame number and the delay
                     #expected (using file_num_frames variable)
                     self.HeartBeat.check_heartbeat(self.session_num, self.frame_num, self.file_num_frames,self.file_date)
+                # tells the receiver to delete a file - can be overriden by local receiver settings
                 if self.packet_type == self.DELETEFile_PACKET:
                     self.do_delete_file(frame_data)
                     
@@ -285,6 +288,7 @@ class Decode :
         DuplicateFiles=0    
                
     def process_info_packet(self,packet):
+        # info packets contain coded fixed-message numbers
         if self.session_num == 100:
             self.sendVersion = self.data_size
             #self.sendVersion = str(ipaddress.IPv4Address(self.data_size))
@@ -362,11 +366,8 @@ class Decode :
                 
         else:
             # does the file already exist on the disk ?
-            #if sys.platform != 'win32':
-                #self.file_name = self.file_name.replace('\\','/')
             dest_file_name = os.path.join(self.dest_path,self.file_name)
             
-            #dest_file = self.dest_path / self.file_name
             self.debug_print('dest_file = "%s"' % dest_file_name)
             # if the date and size haven't changed,
             # not necessary to recreate the file so ignore:
@@ -403,13 +404,7 @@ class Decode :
             return
         self.debug_print("Received DeleteFile notification")
         self.file_name = packet[0 :self.name_length].decode('utf-8')
-        #self.file_name = packet[HEADER_SIZE : HEADER_SIZE + self.name_length]
-        #if sys.platform != 'win32':
-                #self.file_name = self.file_name.replace('\\','/')
-        #if sys.platform == 'win32':
-            #self.file_name = self.file_name.decode('utf_8', 'strict')
         dest_file_name = os.path.join(self.dest_path, self.file_name)
-        #dest_file = self.dest_path / self.file_name
         # Test for blocking or presence of wildcard characters
         if self.invalid_path(self.file_name):
             msg = 'Warning: invalid path for deletion file "%s"...' % self.file_name
@@ -418,10 +413,8 @@ class Decode :
         else:
             msg = 'Deleting "%s"...' % self.file_name
             if os.path.isfile(dest_file_name):
-            #if dest_file.isfile():
                 try:
                     os.remove(dest_file_name)
-                    #os.remove(dest_file)
                 except (OSError):
                     msg = 'Deletion failure "%s"...' % self.file_name
                     self.AROWLogger.warn(msg)
@@ -436,8 +429,6 @@ class Decode :
                     self.AROWLogger.info("suppress folder")
                 try:
                     shutil.rmtree(dest_file_name)
-                    #shutil.rmtree(dest_file)
-                    #os.rmdir(dest_file)
                 except OSError as e:
                     msg = 'Deletion failed file  "%s"... %s' % (self.file_name,e)
                     print(msg,)
@@ -559,15 +550,11 @@ class RxFile:
         self.num_files_received= len(filesreceived)
         self.options=options
         
-        #self.file_frame_num=packet.
         # destination file path
         dest_file_name = os.path.join(self.dest_path,self.file_name)
-        #self.dest_file = self.dest_path / self.file_name
-        #path_dest = self.dest_file.dirname()
         path_dest=os.path.dirname(dest_file_name)
         if not os.path.exists(path_dest):
             os.makedirs(path_dest)
-            #path_dest.makedirs()
         #elif not os.path.isdir(path_dest):
             #path_dest.remove()
             #path_dest.mkdir()
@@ -642,16 +629,8 @@ class RxFile:
                 self.crc32 = fpacket.crc32# the final frame contains the entire file crc
                 print("Received %d frames of %d \r" % (self.received_packets.nb_true,self.file_num_frames))
                 # set a recopy thread going to free resource from the receiver
-                #percentage =
-                #100*(self.received_packets.nb_true)/self.file_num_frames
-                #print "%d%% Frame No.%d is %d of %d \r" %
-                #(percentage,packet.frame_num,self.received_packets.nb_true,self.file_num_frames)
                 self.received_packets.nb_true = 0
-                #recopy=multiprocessing.Process(name=self.temp_file.name,target=self.recopy_destination_file,)
                 recopy = threading.Thread(name=self.dest_file, target=self.recopy_destination_file,)
-                #recopy=threading.Thread(name=os.path.basename(self.dest_file.name),
-                #target=self.recopy_destination_file, )
-                #print copy_threads#
                 # we don't want to copy the same file twice
                 if recopy.name not in copy_threads:
                     copy_threads[recopy.name] = True
@@ -701,9 +680,7 @@ class RxFile:
             msg = 'OK, file %s receipt  finished, checking and copying....' % self.dest_file
             print(msg,)
         # write the destination path, if necessary with makedirs
-        #return
         path_dest=os.path.dirname(self.dest_file.name)
-        #path_dest = self.dest_file.dirname()
         if not os.path.exists(path_dest):
             path_dest.makedirs()
         elif not os.path.isdir(path_dest):
