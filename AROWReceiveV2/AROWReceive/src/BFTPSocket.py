@@ -34,15 +34,10 @@ class BFTPSocket:
            
     
     def __init__ (self,RxQueue,decodeEvent,stats,sock=None): 
-        #if sock is None:
-            #self.sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        #else:
-            #self.sock=sock
         self.RxQueue=RxQueue
         self.decodeEvent=decodeEvent
         self.RX_BUF_LEN=65536
         self.MAX_QUEUE_LEN =RxQueue.maxlen #items , could be up to 2GB depending on frame size
-        #self.MAX_QUEUE_LEN =60000 #items , could be up to 2GB depending on frame size
         self.stats=stats
         self.isRxConnected=False
         self.MARKER1 = 0xB6
@@ -65,10 +60,8 @@ class BFTPSocket:
             #self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 524288)
             self.sock.settimeout(1) # see receive def for value determination
             self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
-            # self.sock.setsockopt(socket.IPPROTO_TCP,socket.SO_RCVLOWAT,64) 
             self.sock.connect((host,port))
             self.isRxConnected = True
-            #print self.sock.gettimeout()
             self.RxQueue.clear()# initialise queue on connect
             self.AROWLogger.info("Receiver connected " +str(host))
             
@@ -93,16 +86,13 @@ class BFTPSocket:
         
     
     def receive(self,Recv_Stop):
-        """For UDP/TCPIP receiver BFTP frames containing files, and storing
-        received files into the directory passed from the startup parameter."""
+        """For TCPIP receiver """
     # from 1.0.1 this is a separate thread. It needs to run at highest priority and to fill the deque
     #without being delayed, so decodeEvent is cleared when there is data to be received. 
     #Using the socket timeout to set the decodeEvent means there is no data currently and also forces data decoding to be 
     #deferred for a period of at least the socket timeout value.
     # hack: changing the contents of a global variable
         
-        #RxQueue.queue.clear()
-        #RxQueue.clear()
         options=self.stats.get_setup()
         strttime=time.time()
         statlen=0
@@ -114,9 +104,7 @@ class BFTPSocket:
         buf=bytearray()
         reconnectTimeout=2
         chunk=""
-        #tot_buf=[]
         lenf=0
-        #view=memoryview(buf)
         index1=0
         while (not Recv_Stop.is_set()):
             try:
@@ -128,19 +116,17 @@ class BFTPSocket:
                     while toread :
                         if len(buf) >6:
                             #print len(buf)
-                            #if buf.find(b'\xb6\x3a\x07')==0 and isSync==True:
                             if buf[0]==self.MARKER1 and isSync ==True:
                                 lenf=buf[4]|buf[5]<<8    
                                 pass# we've landed on a frame boundary so carry on
                             else:
                                 isSync=False    
                             while isSync==False and len(buf)>6:
-                                #print len(buf)
-                                index1=buf.find(b'\xb6\x3a\x07')
+                                index1=buf.find(b'\xb6\x3a\x07')# find the marker sequence
                                 if index1==0:
                                     isSync= True
                                     lenf=buf[4]|buf[5]<<8
-                                    #print "Sync"
+                                    #print ("Sync")
                                     break
                                 elif index1==-1:
                                     toread-=len(buf)-2
@@ -152,7 +138,6 @@ class BFTPSocket:
                                 isSync=False
                                 lenf=0
                         #"""
-                        #print "frame length",lenf        
                                   
                         if len(buf)>=lenf+self.HEADER_SIZE:# enough data to create frame
                             header = buf[0:self.HEADER_SIZE]
@@ -194,12 +179,9 @@ class BFTPSocket:
                             
                             #toread=0
                     
-                    #packet=self.sock.recv(RX_BUF_LEN)
                     statlen+=len(frame_data)
                     if intvltime>period:
                         self.stats.add_inrate(statlen)
-                        #if options.recovery == True:
-                            #self.stats.checkManifest()
                         strttime=time.time()
                         statlen=0
                    
@@ -209,7 +191,6 @@ class BFTPSocket:
                     continue
                         
                 if not chunk:# stream has disconnected
-                #if not packet:# stream has disconnected
                     try:
                         self.isRxConnected=False
                         raise Exception ("socket lost")
@@ -240,11 +221,8 @@ class BFTPSocket:
                             self.decodeEvent.clear()
                             
                         else:
-                            self.RxQueue.append((header,frame_data))
-                            #decodeEvent.set()
                             #length returned is variable so dump to deque
-                            #RxQueue.extend(packet[0:len(packet)])
-                            #print "Q%d" %len(RxQueue)
+                            self.RxQueue.append((header,frame_data))
                             
                                
                     except Exception:
@@ -253,10 +231,8 @@ class BFTPSocket:
                         traceback.print_exc()
                         self.AROWLogger.error(msg)
             except KeyboardInterrupt:
-                #print "Goodbye"    
                 self.decodeEvent.clear()
                 break
-        #print 'recvthreadend'       
     def close(self):
         self.sock.close()          
 #------------------------------------------------------------------------------

@@ -29,7 +29,6 @@ def calc_crc(mfile, CRCStop):
     
     try:
         f = io.open(mfile, 'rb')
-        #f = open(mfile, 'rb')
         buf = f.read(16384)
         # start CRC32 calculation:
         crc32 = binascii.crc32(buf)
@@ -47,7 +46,7 @@ def calc_crc(mfile, CRCStop):
         f.close()
         debug_print(u"CRC32 = %08X" % crc32)
     except IOError:
-            #print "Error : CRC32 Opening impossible for: %s" %file
+            #print ("Error : CRC32 Opening impossible for: %s" %file)
             crc32=0
     return(crc32)
 
