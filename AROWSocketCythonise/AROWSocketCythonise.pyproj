@@ -11,7 +11,7 @@
     <OutputPath>.</OutputPath>
     <Name>AROWSocketCythonise</Name>
     <RootNamespace>AROWSocketCythonise</RootNamespace>
-    <InterpreterId>MSBuild|Win_py36_env|$(MSBuildProjectFullPath)</InterpreterId>
+    <InterpreterId>Global|VisualStudio|Win_py37_env</InterpreterId>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <CommandLineArguments>setup.py build_ext --inplace</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
@@ -26,18 +26,10 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Interpreter Include="..\..\..\Win_py36_env\">
-      <Id>Win_py36_env</Id>
-      <Version>3.6</Version>
-      <Description>Win_py36_env (Python36_86)</Description>
-      <InterpreterPath>Scripts\python.exe</InterpreterPath>
-      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
-      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
-      <Architecture>X86</Architecture>
-    </Interpreter>
+    <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="requirements.txt" />
+    <InterpreterReference Include="Global|VisualStudio|Win_py37_env" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
