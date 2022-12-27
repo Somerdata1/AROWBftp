@@ -9,4 +9,4 @@ pycodestyle==2.4.0
 PyInstaller==3.4
 pywin32==224
 pywin32-ctypes==0.2.0
-setuptools==40.6.3
+setuptools==65.5.1
